@@ -45,7 +45,11 @@ These define the minimum usable product.
 
 ## Roadmap
 
-1. Version 1.0: Project management, work items management.
-2. Version 1.1: Timeline estimation.
-3. Version 1.2: Resource planning.
-4. Version 1.3: Cost estimation.
+1. Version 1: Desktop Application can run on MacOS, Windows, and Linux.
+   1. Version 1.0: Project management, work items management.
+   2. Version 1.1: Timeline estimation.
+   3. Version 1.2: Resource planning.
+   4. Version 1.3: Cost estimation.
+2. Version 2: Web Application. Can connect to an REST API Server. (will do later)
+
+We are implementing version 1 first.
