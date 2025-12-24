@@ -28,3 +28,40 @@
 3. Backend and frontend are separated.
 4. Backend and frontend are deployed separately.
 5. Frontend sends requests to Backend via RESTFul API, and they should be authenticated via JWT.
+
+## Source code
+
+There are two main folders in the source code:
+
+1. `server`: contains the backend source code.
+   1. `cmd`: Contains commands to run the application (server entry point, migration runner). **Required**.
+   2. `config`: Configuration loading and parsing. **Optional**.
+   3. `internal`: Internal packages used exclusively within this project. **Required**.
+      1. `models`: Data models and ORM definitions (project, task, resource, cost, user, dependency). **Required**.
+      2. `repositories`: Repository interfaces and implementations for database operations. **Required**.
+      3. `services`: Business logic services (project, task, timeline, resource, cost, auth). **Required**.
+      4. `handlers`: HTTP handlers for RESTful API endpoints. **Required**.
+      5. `middleware`: HTTP middleware (auth, CORS, logging, recovery, rate limiting). **Required**.
+      6. `dto`: Data Transfer Objects for API requests and responses. **Required**.
+      7. `validators`: Input validation logic. **Optional**.
+      8. `utils`: Utility functions (crypto, JWT, time, response helpers). **Optional**.
+      9. `db`: Database initialization and connection management. **Required**.
+      10. `cache`: Cache initialization and operations (Redis). **Optional**.
+   4. `pkg`: Packages exposed for use by other services or clients (errors, logger). **Optional**.
+   5. `migrations`: Database migration files (up/down SQL files). **Required**.
+   6. `tests`: Test files organized by package (integration, unit, testdata). **Optional**.
+   7. `docs`: API documentation (Swagger/OpenAPI). **Optional**.
+2. `site`: contains the frontend source code.
+   1. `public`: Static assets (index.html, favicon, images). **Required**.
+   2. `src`: Main source code for the React application. **Required**.
+      1. `assets`: Images, fonts, and other static resources. **Optional**.
+      2. `components`: Reusable React components organized by feature (common, layout, projects, tasks, timeline, resources, costs). **Required**.
+      3. `pages`: Page-level components representing routes (ProjectsPage, ProjectDetailPage, TimelinePage, ResourcesPage, CostsPage, LoginPage, DashboardPage). **Required**.
+      4. `services`: API service modules for backend communication (auth, project, task, resource, cost). **Required**.
+      5. `hooks`: Custom React hooks (useAuth, useProject, useDebounce). **Optional**.
+      6. `contexts`: React Context providers for global state management (AuthContext, ThemeContext). **Optional**.
+      7. `types`: TypeScript type definitions and interfaces (project, task, resource, cost, api types). **Required**.
+      8. `utils`: Utility functions and helpers (date, validation, calculations, constants). **Optional**.
+      9. `routes`: Routing configuration (main routing setup, PrivateRoute). **Required**.
+      10. `styles`: Global styles and theme configuration (Material UI theme, global CSS). **Optional**.
+   3. `tests`: Test files organized by feature (components, services, utils). **Optional**.
