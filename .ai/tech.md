@@ -42,11 +42,9 @@ There are two main folders in the source code:
       3. `services`: Business logic services (project, task, timeline, resource, cost, auth). **Required**.
       4. `handlers`: HTTP handlers for RESTful API endpoints. **Required**.
       5. `middleware`: HTTP middleware (auth, CORS, logging, recovery, rate limiting). **Required**.
-      6. `dto`: Data Transfer Objects for API requests and responses. **Required**.
-      7. `validators`: Input validation logic. **Optional**.
-      8. `utils`: Utility functions (crypto, JWT, time, response helpers). **Optional**.
-      9. `db`: Database initialization and connection management. **Required**.
-      10. `cache`: Cache initialization and operations (Redis). **Optional**.
+      6. `utils`: Utility functions (crypto, JWT, time, response helpers). **Optional**.
+      7. `db`: Database initialization and connection management. **Required**.
+      8. `cache`: Cache initialization and operations (Redis). **Optional**.
    4. `pkg`: Packages exposed for use by other services or clients (errors, logger). **Optional**.
    5. `migrations`: Database migration files (up/down SQL files). **Required**.
    6. `tests`: Test files organized by package (integration, unit, testdata). **Optional**.
