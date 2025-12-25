@@ -8,7 +8,7 @@
 4. Logging: Uber Zap
 5. Testing: Go test
 6. CI/CD: GitHub Actions
-7. DB Migration: golang-migrate
+7. DB Migration: [golang-migrate](https://github.com/golang-migrate/migrate)
 8. This project can be run locally, so it should be compatible with Windows, Linux, and macOS, and should be compiled to a single binary file.
 
 
