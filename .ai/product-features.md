@@ -1,40 +1,35 @@
 # Product features
 
-This project has some core features:
+This product has some core features:
 
-1. Project
-2. Work Breakdown Structure (WBS)
-3. Timeline & Dependencies
-4. Resources
-5. Costs
-
-## MVP Features (Must-Have)
-
-These define the minimum usable product.
-
-1. Project Definition
-   1. Project metadata (name, type, methodology: Waterfall / Agile / Hybrid)
+1. Project management
+   1. Project metadata (name, type)
    2. Start date, target end date
    3. Assumptions & constraints
-2. Task & WBS Management
-   1. Hierarchical tasks (epics → tasks → subtasks)
-   2. Estimated effort (hours / days)
-   3. Dependency types:
-      1. Finish-to-Start
-      2. Start-to-Start
-   4. Critical path calculation (basic)
-3. Timeline Estimation
+   4. Client (we have client management)
+   5. Project Manager
+2. Work Breakdown Structure (WBS)
+3. Timeline & Dependencies
    1. Auto-calculated project duration
    2. Gantt-style timeline (read-only initially)
    3. Slack / buffer visibility
-4. Resource Planning
-   1. Define roles (PM, Backend, QA, Designer, etc.)
-   2. Assign resources to tasks
-   3. Capacity limits per resource
-5. Cost Estimation
-   1. Hourly / daily cost per role
-   2. Total cost per task, phase, project
-   3. Cost breakdown by category
+4. Resources: manage resource, person names, and their titles, and their levels, and their costs.
+   1. Resource planning:
+      1. Define roles (PM, Backend, QA, Designer, etc.)
+      2. Assign resources to tasks
+      3. Capacity limits per resource
+      4. A role in a project must have the level of the role.
+      5. A role in a tasks must be estimated by man-days.
+      6. A role in a project must be estimated by man-months, and it can be summed up from its tasks.
+5. High-level estimation. We don't need to assign tasks to a specific resource, we just need to estimate how many man-days or man-months for a task, or a projects.
+   1. The estimation can be summed up to the milestone, and the project level.
+6. Project costs: include costs for human resources and cost for infrastructure & service costs.
+   1. Human resources
+      1. Hourly / daily cost per role
+      2. Total cost per task, phase, project
+   2. Cost breakdown by category
+   3. The cost can be summed up to the milestone, and the project level.
+   4. The costs can be filtered by categories, by resources, by milestones, by dates.
 
 ## What end-users can do with Plan Craft
 

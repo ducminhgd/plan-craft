@@ -19,6 +19,8 @@
 3. `config`: Configuration loading and parsing. **Optional**.
 4. `internal`: Internal packages used exclusively within this project. **Required**.
    1. `models`: Data models and ORM definitions (project, task, resource, cost, user, dependency). **Required**.
+      1. I don't need `deleted_at` field.
+      2. I don't need to create base model.
    2. `repositories`: Repository interfaces and implementations for database operations. **Required**.
    3. `services`: Business logic services (project, task, timeline, resource, cost, auth). **Required**.
    4. `utils`: Utility functions (crypto, JWT, time, response helpers). **Optional**.
