@@ -85,7 +85,92 @@ This project is licensed under the BSL 1.1 License - see the [LICENSE.md](LICENS
 
 ## Getting Started
 
-(Coming soon)
+### Prerequisites
+
+- Go 1.23 or higher
+- SQLite (included with most systems)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ducminhgd/plan-craft.git
+cd plan-craft
+```
+
+2. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+3. Install dependencies:
+```bash
+make deps
+```
+
+4. Build the application:
+```bash
+make build
+```
+
+5. Run the application:
+```bash
+make run
+```
+
+The application will:
+- Create the SQLite database at `data/plancraft.db`
+- Run auto-migrations to create all tables
+- Create sample data (project, tasks, resources)
+
+### Development
+
+Run in development mode with auto-reload (requires [air](https://github.com/air-verse/air)):
+```bash
+make dev
+```
+
+### Database
+
+The application uses SQLite with the following optimizations:
+- WAL (Write-Ahead Logging) mode for better concurrency
+- 64MB cache for improved performance
+- Foreign key constraints enabled
+- Incremental auto-vacuum
+
+To clean the database:
+```bash
+make db-clean
+```
+
+### Project Structure
+
+```
+plan-craft/
+├── cmd/
+│   └── server/          # Application entry point
+├── config/              # Configuration management
+├── internal/
+│   ├── db/             # Database initialization
+│   └── models/         # GORM models
+├── data/               # SQLite database files
+├── .env.example        # Example environment variables
+├── Makefile           # Build and development tasks
+└── README.md
+```
+
+### Available Make Commands
+
+- `make help` - Show available commands
+- `make deps` - Download dependencies
+- `make build` - Build the application
+- `make run` - Run the application
+- `make test` - Run tests
+- `make clean` - Clean build artifacts
+- `make db-clean` - Remove database file
+- `make dev` - Run in development mode
+- `make fmt` - Format code
+- `make lint` - Lint code
 
 ## Contributing
 
