@@ -56,11 +56,12 @@ type Project struct {
 	ClientID *uint `gorm:"index" json:"client_id,omitempty"` // Client/customer ID
 
 	// Relationships
-	Client       *Client       `gorm:"foreignKey:ClientID" json:"client,omitempty"`
-	Tasks        []Task        `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"tasks,omitempty"`
-	Milestones   []Milestone   `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"milestones,omitempty"`
-	ProjectRoles []ProjectRole `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"project_roles,omitempty"`
-	Costs        []Cost        `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"costs,omitempty"`
+	Client              *Client              `gorm:"foreignKey:ClientID" json:"client,omitempty"`
+	Tasks               []Task               `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"tasks,omitempty"`
+	Milestones          []Milestone          `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"milestones,omitempty"`
+	ProjectRoles        []ProjectRole        `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"project_roles,omitempty"`
+	Costs               []Cost               `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"costs,omitempty"`
+	ResourceAllocations []ResourceAllocation `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"resource_allocations,omitempty"`
 }
 
 // TableName specifies the table name for Project model

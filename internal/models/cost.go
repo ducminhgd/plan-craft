@@ -19,24 +19,24 @@ type Cost struct {
 	TaskID      *uint `gorm:"index:idx_cost_task" json:"task_id,omitempty"`
 
 	// Cost Classification
-	Type     CostType `gorm:"type:varchar(50);not null;index" json:"type"`           // labor, material, equipment, overhead, other
-	Category string   `gorm:"type:varchar(100);index" json:"category,omitempty"`     // Custom category for grouping
-	Name     string   `gorm:"type:varchar(255);not null" json:"name"`                // Description of the cost
+	Type     CostType `gorm:"type:varchar(50);not null;index" json:"type"`       // labor, material, equipment, overhead, other
+	Category string   `gorm:"type:varchar(100);index" json:"category,omitempty"` // Custom category for grouping
+	Name     string   `gorm:"type:varchar(255);not null" json:"name"`            // Description of the cost
 
 	// Cost Details
-	Amount       float64  `gorm:"type:decimal(15,2);not null" json:"amount"`              // Cost amount
-	Currency     string   `gorm:"type:varchar(3);default:'USD'" json:"currency"`          // ISO 4217 currency code
-	Quantity     float64  `gorm:"type:decimal(10,2);default:1" json:"quantity"`           // Quantity (for unit costs)
-	UnitCost     float64  `gorm:"type:decimal(15,2);default:0" json:"unit_cost"`          // Cost per unit
+	Amount   float64 `gorm:"type:decimal(15,2);not null" json:"amount"`     // Cost amount
+	Currency string  `gorm:"type:varchar(3);default:'USD'" json:"currency"` // ISO 4217 currency code
+	Quantity float64 `gorm:"type:decimal(10,2);default:1" json:"quantity"`  // Quantity (for unit costs)
+	UnitCost float64 `gorm:"type:decimal(15,2);default:0" json:"unit_cost"` // Cost per unit
 
 	// For Labor Costs - linked to resources
-	ResourceID    *uint    `gorm:"index:idx_cost_resource" json:"resource_id,omitempty"`       // If labor cost, which resource
+	ResourceID    *uint    `gorm:"index:idx_cost_resource" json:"resource_id,omitempty"`         // If labor cost, which resource
 	ProjectRoleID *uint    `gorm:"index:idx_cost_project_role" json:"project_role_id,omitempty"` // If labor cost, which project role
-	RateType      RateType `gorm:"type:varchar(50)" json:"rate_type,omitempty"`                // hourly, daily, monthly, fixed
-	Hours         float64  `gorm:"type:decimal(10,2);default:0" json:"hours,omitempty"`        // Hours worked (for hourly/daily rates)
+	RateType      RateType `gorm:"type:varchar(50)" json:"rate_type,omitempty"`                  // hourly, daily, monthly, fixed
+	Hours         float64  `gorm:"type:decimal(10,2);default:0" json:"hours,omitempty"`          // Hours worked (for hourly/daily rates)
 
 	// Status
-	IsEstimated bool       `gorm:"default:true;index" json:"is_estimated"` // true = estimated, false = actual
+	IsEstimated bool       `gorm:"default:true;index" json:"is_estimated"`    // true = estimated, false = actual
 	Date        *time.Time `gorm:"type:datetime;index" json:"date,omitempty"` // Date when cost was incurred
 
 	// Additional Information

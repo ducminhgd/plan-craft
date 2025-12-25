@@ -21,6 +21,8 @@ This product has some core features:
       4. A role in a project must have the level of the role.
       5. A role in a tasks must be estimated by man-days.
       6. A role in a project must be estimated by man-months, and it can be summed up from its tasks.
+   2. A resource can be assigned to multiple projects. For each projects, a resource can be assigned to multiple roles.
+   3. A resource can be allocated in a project with a spefic percentage for a specific role in a specific time range.
 5. High-level estimation. We don't need to assign tasks to a specific resource, we just need to estimate how many man-days or man-months for a task, or a projects.
    1. The estimation can be summed up to the milestone, and the project level.
 6. Project costs: include costs for human resources and cost for infrastructure & service costs.

@@ -37,8 +37,9 @@ type Resource struct {
 	Notes  string      `gorm:"type:text" json:"notes,omitempty"`
 
 	// Relationships
-	ProjectRoles []ProjectRole    `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"project_roles,omitempty"`
-	Assignments  []TaskAssignment `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"assignments,omitempty"`
+	ProjectRoles        []ProjectRole        `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"project_roles,omitempty"`
+	Assignments         []TaskAssignment     `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"assignments,omitempty"`
+	ResourceAllocations []ResourceAllocation `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"resource_allocations,omitempty"`
 }
 
 // TableName specifies the table name for Resource model
@@ -119,9 +120,10 @@ type ProjectRole struct {
 	Notes    string `gorm:"type:text" json:"notes,omitempty"`
 
 	// Relationships
-	Project     *Project         `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
-	Resource    *Resource        `gorm:"foreignKey:ResourceID" json:"resource,omitempty"`
-	Assignments []TaskAssignment `gorm:"foreignKey:ProjectRoleID;constraint:OnDelete:CASCADE" json:"assignments,omitempty"`
+	Project            *Project                 `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
+	Resource           *Resource                `gorm:"foreignKey:ResourceID" json:"resource,omitempty"`
+	Assignments        []TaskAssignment         `gorm:"foreignKey:ProjectRoleID;constraint:OnDelete:CASCADE" json:"assignments,omitempty"`
+	ResourceAllocation []ResourceAllocation     `gorm:"foreignKey:ProjectRoleID;constraint:OnDelete:CASCADE" json:"resource_allocations,omitempty"`
 }
 
 // TableName specifies the table name for ProjectRole model
@@ -266,4 +268,129 @@ func (ta *TaskAssignment) EstimatedHours() float64 {
 // ActualHours converts actual man-days to hours (assuming 8-hour workday)
 func (ta *TaskAssignment) ActualHours() float64 {
 	return ta.ActualManDays * 8.0
+}
+
+// ResourceAllocation represents the allocation of a resource to a specific project role
+// for a specific time range with a specific percentage
+// This satisfies requirement 4.3: A resource can be allocated in a project with a specific
+// percentage for a specific role in a specific time range
+type ResourceAllocation struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// Project Role Assignment
+	ProjectRoleID uint `gorm:"not null;index:idx_resource_allocation_role" json:"project_role_id"`
+	ResourceID    uint `gorm:"not null;index:idx_resource_allocation_resource" json:"resource_id"` // Denormalized for easier querying
+	ProjectID     uint `gorm:"not null;index:idx_resource_allocation_project" json:"project_id"`   // Denormalized for easier querying
+
+	// Time Range
+	StartDate time.Time `gorm:"type:datetime;not null;index:idx_resource_allocation_dates" json:"start_date"`
+	EndDate   time.Time `gorm:"type:datetime;not null;index:idx_resource_allocation_dates" json:"end_date"`
+
+	// Allocation Percentage (0-100)
+	// This represents how much of the resource's available time is allocated to this role
+	// For example: 50% means the resource works half-time on this role during the time range
+	AllocationPercent float64 `gorm:"type:decimal(5,2);not null" json:"allocation_percent"`
+
+	// Capacity Override (optional, overrides ProjectRole capacity for this time range)
+	HoursPerDay  *float64 `gorm:"type:decimal(5,2)" json:"hours_per_day,omitempty"`
+	DaysPerWeek  *float64 `gorm:"type:decimal(5,2)" json:"days_per_week,omitempty"`
+	DaysPerMonth *float64 `gorm:"type:decimal(5,2)" json:"days_per_month,omitempty"`
+
+	// Status
+	IsActive bool   `gorm:"default:true" json:"is_active"`
+	Notes    string `gorm:"type:text" json:"notes,omitempty"`
+
+	// Relationships
+	ProjectRole *ProjectRole `gorm:"foreignKey:ProjectRoleID" json:"project_role,omitempty"`
+	Resource    *Resource    `gorm:"foreignKey:ResourceID" json:"resource,omitempty"`
+	Project     *Project     `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
+}
+
+// TableName specifies the table name for ResourceAllocation model
+func (ResourceAllocation) TableName() string {
+	return "resource_allocations"
+}
+
+// BeforeSave is a GORM hook that runs before saving
+func (ra *ResourceAllocation) BeforeSave(tx *gorm.DB) error {
+	// Validate allocation percentage
+	if ra.AllocationPercent < 0 || ra.AllocationPercent > 100 {
+		return errors.New("allocation percent must be between 0 and 100")
+	}
+
+	// Validate dates
+	if ra.EndDate.Before(ra.StartDate) {
+		return errors.New("end date cannot be before start date")
+	}
+
+	// Validate capacity if set
+	if ra.HoursPerDay != nil && (*ra.HoursPerDay < 0 || *ra.HoursPerDay > 24) {
+		return errors.New("hours per day must be between 0 and 24")
+	}
+
+	if ra.DaysPerWeek != nil && (*ra.DaysPerWeek < 0 || *ra.DaysPerWeek > 7) {
+		return errors.New("days per week must be between 0 and 7")
+	}
+
+	if ra.DaysPerMonth != nil && (*ra.DaysPerMonth < 0 || *ra.DaysPerMonth > 31) {
+		return errors.New("days per month must be between 0 and 31")
+	}
+
+	return nil
+}
+
+// Duration returns the duration of the allocation in days
+func (ra *ResourceAllocation) Duration() time.Duration {
+	return ra.EndDate.Sub(ra.StartDate)
+}
+
+// DurationDays returns the duration of the allocation in calendar days
+func (ra *ResourceAllocation) DurationDays() float64 {
+	return ra.Duration().Hours() / 24.0
+}
+
+// GetEffectiveHoursPerDay returns the effective hours per day for this allocation
+func (ra *ResourceAllocation) GetEffectiveHoursPerDay(projectRole *ProjectRole, resource *Resource) float64 {
+	if ra.HoursPerDay != nil {
+		return *ra.HoursPerDay
+	}
+	if projectRole != nil {
+		return projectRole.GetEffectiveHoursPerDay(resource)
+	}
+	if resource != nil {
+		return resource.DefaultHoursPerDay
+	}
+	return 8.0 // fallback default
+}
+
+// GetEffectiveDaysPerMonth returns the effective days per month for this allocation
+func (ra *ResourceAllocation) GetEffectiveDaysPerMonth(projectRole *ProjectRole, resource *Resource) float64 {
+	if ra.DaysPerMonth != nil {
+		return *ra.DaysPerMonth
+	}
+	if projectRole != nil {
+		return projectRole.GetEffectiveDaysPerMonth(resource)
+	}
+	if resource != nil {
+		return resource.DefaultDaysPerMonth
+	}
+	return 20.0 // fallback default
+}
+
+// EstimatedEffortHours calculates the estimated effort hours for this allocation
+// considering the allocation percentage and time range
+func (ra *ResourceAllocation) EstimatedEffortHours(projectRole *ProjectRole, resource *Resource) float64 {
+	hoursPerDay := ra.GetEffectiveHoursPerDay(projectRole, resource)
+	daysPerMonth := ra.GetEffectiveDaysPerMonth(projectRole, resource)
+
+	// Calculate total working days in the allocation period
+	durationMonths := ra.DurationDays() / 30.0 // Approximate months
+	totalWorkingDays := durationMonths * daysPerMonth
+
+	// Calculate total hours considering allocation percentage
+	totalHours := totalWorkingDays * hoursPerDay * (ra.AllocationPercent / 100.0)
+
+	return totalHours
 }
