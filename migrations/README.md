@@ -171,4 +171,4 @@ The complete schema includes 10 tables:
 - Project Roles → Task Assignments (1:N)
 - Projects/Milestones/Tasks → Costs (1:N)
 
-See [internal/models/](../internal/models/) for Go model definitions.
+See [internal/entities/](../internal/entities/) for Go model definitions.

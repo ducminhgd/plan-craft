@@ -33,8 +33,8 @@ make mocks         # Generate mocks with mockery (if installed)
 
 ### Running Single Tests
 ```bash
-go test -v ./internal/models -run TestProjectValidation
-go test -v ./internal/models/... -cover
+go test -v ./internal/entities -run TestProjectValidation
+go test -v ./internal/entities/... -cover
 ```
 
 ## Architecture Overview
@@ -42,14 +42,14 @@ go test -v ./internal/models/... -cover
 ### Layered Architecture
 Plan Craft follows a **clean architecture with clear separation of concerns**:
 
-1. **Models Layer** (`internal/models/`) - GORM domain models with business validation
+1. **Entities Layer** (`internal/entities/`) - GORM domain entities with business validation, pagination, filtering, and sorting capabilities
 2. **Repository Layer** (`internal/repositories/`) - Database operations (planned, not yet implemented)
 3. **Service Layer** (`internal/services/`) - Business logic (planned, not yet implemented)
 4. **UI Layer** (`internal/ui/`) - Wails desktop UI (planned, not yet implemented)
 
 ### Current State (as of feature/init-with-ai branch)
 - ✅ Database schema and migrations complete
-- ✅ All GORM models implemented with 90% test coverage
+- ✅ All GORM entities implemented with 90% test coverage
 - ✅ Database initialization and configuration complete
 - 🚧 Application entry point (`cmd/`) exists but empty
 - ⏳ Repository, service, and UI layers not yet implemented
@@ -97,7 +97,7 @@ The domain model consists of 10 interrelated entities representing project manag
 
 ### Custom Work Time Configuration
 
-Projects can override default work time units via nullable fields in [internal/models/project.go](internal/models/project.go):
+Projects can override default work time units via nullable fields in [internal/entities/project.go](internal/entities/project.go):
 
 ```go
 // Project model
@@ -110,7 +110,7 @@ func (p *Project) GetHoursPerDay() float64   // Returns project override or Defa
 func (p *Project) EstimatedMonths() float64  // Converts EstimatedHours using project settings
 ```
 
-**Default Constants** (in [internal/models/models.go](internal/models/models.go)):
+**Default Constants** (in [internal/entities/models.go](internal/entities/models.go)):
 - `DefaultHoursPerDay = 8.0`
 - `DefaultDaysPerWeek = 5.0`
 - `DefaultDaysPerMonth = 20.0`
@@ -140,7 +140,82 @@ type JSONB map[string]interface{}  // Stored as JSON object
 // Used for: Project.Metadata, Task.Metadata
 ```
 
-See [internal/models/models.go](internal/models/models.go) for implementation.
+See [internal/entities/entities.go](internal/entities/entities.go) for implementation.
+
+### Query Patterns: Pagination, Filtering, and Sorting
+
+The entities package provides a flexible query system for building database queries with pagination, filtering, and sorting. All patterns are defined in [internal/entities/entities.go](internal/entities/entities.go).
+
+**Pagination**:
+```go
+// Create pagination with defaults (page 1, size 20, max 100)
+pagination := entities.NewPagination(1, 20)
+
+// Apply to GORM query
+db = pagination.Apply(db)
+
+// Get pagination metadata
+totalPages := pagination.TotalPages()
+hasNext := pagination.HasNext()
+```
+
+**Sorting**:
+```go
+// Create sort parameters
+sort := entities.NewSort("created_at", entities.SortOrderDesc)
+
+// Define allowed fields (whitelist for security)
+allowedFields := map[string]string{
+    "name": "name",
+    "created_at": "created_at",
+}
+
+// Apply to GORM query
+db = sort.Apply(db, allowedFields)
+```
+
+**Filtering**:
+```go
+// Create filter conditions
+filters := entities.NewFilters([]entities.Filter{
+    {Field: "status", Operator: entities.FilterOpEqual, Value: "active"},
+    {Field: "created_at", Operator: entities.FilterOpGreaterThan, Value: time.Now().AddDate(0, -1, 0)},
+}, "AND")
+
+// Define allowed fields (whitelist for security)
+allowedFields := map[string]string{
+    "status": "status",
+    "created_at": "created_at",
+}
+
+// Apply to GORM query
+db = filters.Apply(db, allowedFields)
+```
+
+**Combined Query Parameters**:
+```go
+// Use QueryParams to combine all three
+params := entities.NewQueryParams()
+params.Pagination = entities.NewPagination(2, 50)
+params.Sort = entities.NewSort("name", entities.SortOrderAsc)
+params.Filters = entities.NewFilters([]entities.Filter{
+    {Field: "type", Operator: entities.FilterOpEqual, Value: "product"},
+}, "AND")
+
+// Apply all at once
+db = params.Apply(db, allowedSortFields, allowedFilterFields)
+```
+
+**Available Filter Operators**:
+- `FilterOpEqual`, `FilterOpNotEqual` - Equality checks
+- `FilterOpGreaterThan`, `FilterOpGreaterOrEqual`, `FilterOpLessThan`, `FilterOpLessOrEqual` - Comparisons
+- `FilterOpLike`, `FilterOpNotLike` - Pattern matching
+- `FilterOpIn`, `FilterOpNotIn` - List membership
+- `FilterOpIsNull`, `FilterOpIsNotNull` - Null checks
+- `FilterOpBetween` - Range queries (requires 2-element array value)
+- `FilterOpContains` - Case-insensitive substring search
+
+**Security Note**: Always use field whitelists (`allowedFields` maps) to prevent SQL injection and unauthorized field access.
 
 ## Database and Migrations
 
@@ -174,7 +249,7 @@ migrate create -ext sql -dir migrations -seq description_of_change
 
 ## Model Validation and Enums
 
-All enums have corresponding validation functions in [internal/models/models.go](internal/models/models.go):
+All enums have corresponding validation functions in [internal/entities/models.go](internal/entities/models.go):
 
 ```go
 // Enums
@@ -197,8 +272,8 @@ func IsValidDependencyType(dt DependencyType) bool
 ## Testing Practices
 
 ### Current Test Coverage
-- Models package: 90% coverage
-- 8 test files: `*_test.go` in [internal/models/](internal/models/)
+- Entities package: 90% coverage
+- 8 test files: `*_test.go` in [internal/entities/](internal/entities/)
 - Uses `github.com/stretchr/testify/assert` for assertions
 
 ### Test Patterns Used
@@ -230,7 +305,7 @@ func TestIsValidProjectType(t *testing.T) {
 
 ```bash
 go test ./...                          # All tests
-go test -v ./internal/models/...       # Verbose output for models
+go test -v ./internal/entities/...     # Verbose output for entities
 go test -cover ./...                   # With coverage report
 go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out  # HTML coverage
 ```
@@ -272,13 +347,13 @@ See [.ai/product-features.md](.ai/product-features.md) for detailed feature spec
 - [internal/requires/database.go](internal/requires/database.go) - Database initialization and health checks
 - [.env.example](.env.example) - Environment variable template
 
-### Models (all in internal/models/)
-- [models.go](internal/models/models.go) - Enums, constants, validation functions, custom types
-- [project.go](internal/models/project.go) - Project model with custom work time support
-- [task.go](internal/models/task.go) - Task model with hierarchical WBS
-- [resource.go](internal/models/resource.go) - Resource, ProjectRole, ResourceAllocation, TaskAssignment
-- [cost.go](internal/models/cost.go) - Polymorphic cost tracking
-- [milestone.go](internal/models/milestone.go), [client.go](internal/models/client.go)
+### Entities (all in internal/entities/)
+- [entities.go](internal/entities/entities.go) - Enums, constants, validation functions, custom types, pagination, filtering, sorting
+- [project.go](internal/entities/project.go) - Project entity with custom work time support
+- [task.go](internal/entities/task.go) - Task entity with hierarchical WBS
+- [resource.go](internal/entities/resource.go) - Resource, ProjectRole, ResourceAllocation, TaskAssignment
+- [cost.go](internal/entities/cost.go) - Polymorphic cost tracking
+- [milestone.go](internal/entities/milestone.go), [client.go](internal/entities/client.go)
 
 ### Database
 - [migrations/000001_initial_schema.up.sql](migrations/000001_initial_schema.up.sql) - Complete database schema
@@ -293,8 +368,8 @@ See [.ai/product-features.md](.ai/product-features.md) for detailed feature spec
 When working with this codebase:
 
 1. **No Markdown Files**: Don't generate additional markdown documentation unless explicitly requested
-2. **Package Index Files**: The base file in a package should be named the same as the package (e.g., `models/models.go`)
-3. **No Soft Deletes**: Never add `deleted_at` fields to models
+2. **Package Index Files**: The base file in a package should be named the same as the package (e.g., `entities/entities.go`)
+3. **No Soft Deletes**: Never add `deleted_at` fields to entities
 4. **No Base Model**: Don't create or use a base model with embedded fields
 5. **Refer to Product Specs**: Check [.ai/product-features.md](.ai/product-features.md) for feature requirements
 6. **Refer to Tech Specs**: Check [.ai/tech.md](.ai/tech.md) for technology choices and architecture decisions

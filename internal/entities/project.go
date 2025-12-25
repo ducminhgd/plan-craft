@@ -1,4 +1,4 @@
-package models
+package entities
 
 import (
 	"database/sql/driver"
@@ -240,5 +240,147 @@ func (j JSONB) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(j)
+}
+
+// ProjectQuery is the query for searching projects
+type ProjectQuery struct {
+	// ID_In is a list of IDs to search for
+	ID_In []uint `json:"id__in"`
+
+	// Name is the name of the project
+	Name string `json:"name"`
+	// Name_Like is the name of the project to search for (case-insensitive)
+	Name_Like string `json:"name__like"`
+
+	// Code is the project code
+	Code string `json:"code"`
+	// Code_Like is the project code to search for (case-insensitive)
+	Code_Like string `json:"code__like"`
+
+	// Type is the type of the project
+	Type ProjectType `json:"type"`
+	// Type_In is a list of types to search for
+	Type_In []ProjectType `json:"type__in"`
+
+	// Status is the status of the project
+	Status TaskStatus `json:"status"`
+	// Status_In is a list of statuses to search for
+	Status_In []TaskStatus `json:"status__in"`
+
+	// ClientID is the client ID
+	ClientID *uint `json:"client_id"`
+	// ClientID_In is a list of client IDs to search for
+	ClientID_In []uint `json:"client_id__in"`
+
+	// OwnerID is the owner ID
+	OwnerID *uint `json:"owner_id"`
+	// OwnerID_In is a list of owner IDs to search for
+	OwnerID_In []uint `json:"owner_id__in"`
+
+	// Currency is the currency code
+	Currency string `json:"currency"`
+	// Currency_In is a list of currency codes to search for
+	Currency_In []string `json:"currency__in"`
+
+	// Progress_Gte is the minimum progress percentage
+	Progress_Gte *float64 `json:"progress__gte"`
+	// Progress_Lte is the maximum progress percentage
+	Progress_Lte *float64 `json:"progress__lte"`
+
+	// EstimatedEffort_Gte is the minimum estimated effort
+	EstimatedEffort_Gte *float64 `json:"estimated_effort__gte"`
+	// EstimatedEffort_Lte is the maximum estimated effort
+	EstimatedEffort_Lte *float64 `json:"estimated_effort__lte"`
+
+	// ActualEffort_Gte is the minimum actual effort
+	ActualEffort_Gte *float64 `json:"actual_effort__gte"`
+	// ActualEffort_Lte is the maximum actual effort
+	ActualEffort_Lte *float64 `json:"actual_effort__lte"`
+
+	// EstimatedCost_Gte is the minimum estimated cost
+	EstimatedCost_Gte *float64 `json:"estimated_cost__gte"`
+	// EstimatedCost_Lte is the maximum estimated cost
+	EstimatedCost_Lte *float64 `json:"estimated_cost__lte"`
+
+	// ActualCost_Gte is the minimum actual cost
+	ActualCost_Gte *float64 `json:"actual_cost__gte"`
+	// ActualCost_Lte is the maximum actual cost
+	ActualCost_Lte *float64 `json:"actual_cost__lte"`
+
+	// StartDate_Gte is the minimum start date
+	StartDate_Gte *time.Time `json:"start_date__gte"`
+	// StartDate_Lte is the maximum start date
+	StartDate_Lte *time.Time `json:"start_date__lte"`
+
+	// TargetEndDate_Gte is the minimum target end date
+	TargetEndDate_Gte *time.Time `json:"target_end_date__gte"`
+	// TargetEndDate_Lte is the maximum target end date
+	TargetEndDate_Lte *time.Time `json:"target_end_date__lte"`
+
+	// ActualEndDate_Gte is the minimum actual end date
+	ActualEndDate_Gte *time.Time `json:"actual_end_date__gte"`
+	// ActualEndDate_Lte is the maximum actual end date
+	ActualEndDate_Lte *time.Time `json:"actual_end_date__lte"`
+
+	// CreatedAt_Gte is the start time of the project creation time to search for
+	CreatedAt_Gte *time.Time `json:"created_at__gte"`
+	// CreatedAt_Lte is the end time of the project creation time to search for
+	CreatedAt_Lte *time.Time `json:"created_at__lte"`
+
+	// UpdatedAt_Gte is the start time of the project update time to search for
+	UpdatedAt_Gte *time.Time `json:"updated_at__gte"`
+	// UpdatedAt_Lte is the end time of the project update time to search for
+	UpdatedAt_Lte *time.Time `json:"updated_at__lte"`
+
+	// Tags_Contains searches for projects containing all specified tags
+	Tags_Contains []string `json:"tags__contains"`
+
+	// QueryParams holds pagination, sorting, and filtering options
+	QueryParams `json:",inline"`
+}
+
+// AllowedSortFields returns the allowed fields for sorting
+func (q *ProjectQuery) AllowedSortFields() map[string]string {
+	return map[string]string{
+		"id":                "id",
+		"name":              "name",
+		"code":              "code",
+		"type":              "type",
+		"status":            "status",
+		"progress":          "progress",
+		"estimated_effort":  "estimated_effort",
+		"actual_effort":     "actual_effort",
+		"estimated_cost":    "estimated_cost",
+		"actual_cost":       "actual_cost",
+		"start_date":        "start_date",
+		"target_end_date":   "target_end_date",
+		"actual_end_date":   "actual_end_date",
+		"created_at":        "created_at",
+		"updated_at":        "updated_at",
+	}
+}
+
+// AllowedFilterFields returns the allowed fields for filtering
+func (q *ProjectQuery) AllowedFilterFields() map[string]string {
+	return map[string]string{
+		"id":                "id",
+		"name":              "name",
+		"code":              "code",
+		"type":              "type",
+		"status":            "status",
+		"client_id":         "client_id",
+		"owner_id":          "owner_id",
+		"currency":          "currency",
+		"progress":          "progress",
+		"estimated_effort":  "estimated_effort",
+		"actual_effort":     "actual_effort",
+		"estimated_cost":    "estimated_cost",
+		"actual_cost":       "actual_cost",
+		"start_date":        "start_date",
+		"target_end_date":   "target_end_date",
+		"actual_end_date":   "actual_end_date",
+		"created_at":        "created_at",
+		"updated_at":        "updated_at",
+	}
 }
 

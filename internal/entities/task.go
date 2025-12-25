@@ -1,4 +1,4 @@
-package models
+package entities
 
 import (
 	"errors"
@@ -212,3 +212,157 @@ func (td *TaskDependency) BeforeSave(tx *gorm.DB) error {
 
 	return nil
 }
+
+// TaskQuery is the query for searching tasks
+type TaskQuery struct {
+	// ID_In is a list of IDs to search for
+	ID_In []uint `json:"id__in"`
+
+	// ProjectID is the project ID
+	ProjectID *uint `json:"project_id"`
+	// ProjectID_In is a list of project IDs to search for
+	ProjectID_In []uint `json:"project_id__in"`
+
+	// MilestoneID is the milestone ID
+	MilestoneID *uint `json:"milestone_id"`
+	// MilestoneID_In is a list of milestone IDs to search for
+	MilestoneID_In []uint `json:"milestone_id__in"`
+
+	// ParentID is the parent task ID
+	ParentID *uint `json:"parent_id"`
+	// ParentID_IsNull filters for tasks without a parent
+	ParentID_IsNull *bool `json:"parent_id__isnull"`
+
+	// Name is the name of the task
+	Name string `json:"name"`
+	// Name_Like is the name of the task to search for (case-insensitive)
+	Name_Like string `json:"name__like"`
+
+	// Code is the task code (WBS code)
+	Code string `json:"code"`
+	// Code_Like is the task code to search for (case-insensitive)
+	Code_Like string `json:"code__like"`
+
+	// Status is the status of the task
+	Status TaskStatus `json:"status"`
+	// Status_In is a list of statuses to search for
+	Status_In []TaskStatus `json:"status__in"`
+
+	// Priority is the priority of the task
+	Priority Priority `json:"priority"`
+	// Priority_In is a list of priorities to search for
+	Priority_In []Priority `json:"priority__in"`
+
+	// Level is the hierarchical level
+	Level *int `json:"level"`
+	// Level_In is a list of levels to search for
+	Level_In []int `json:"level__in"`
+
+	// AssigneeID is the assignee ID
+	AssigneeID *uint `json:"assignee_id"`
+	// AssigneeID_In is a list of assignee IDs to search for
+	AssigneeID_In []uint `json:"assignee_id__in"`
+
+	// IsCriticalPath filters for critical path tasks
+	IsCriticalPath *bool `json:"is_critical_path"`
+
+	// Progress_Gte is the minimum progress percentage
+	Progress_Gte *float64 `json:"progress__gte"`
+	// Progress_Lte is the maximum progress percentage
+	Progress_Lte *float64 `json:"progress__lte"`
+
+	// EstimatedHours_Gte is the minimum estimated hours
+	EstimatedHours_Gte *float64 `json:"estimated_hours__gte"`
+	// EstimatedHours_Lte is the maximum estimated hours
+	EstimatedHours_Lte *float64 `json:"estimated_hours__lte"`
+
+	// ActualHours_Gte is the minimum actual hours
+	ActualHours_Gte *float64 `json:"actual_hours__gte"`
+	// ActualHours_Lte is the maximum actual hours
+	ActualHours_Lte *float64 `json:"actual_hours__lte"`
+
+	// PlannedStartDate_Gte is the minimum planned start date
+	PlannedStartDate_Gte *time.Time `json:"planned_start_date__gte"`
+	// PlannedStartDate_Lte is the maximum planned start date
+	PlannedStartDate_Lte *time.Time `json:"planned_start_date__lte"`
+
+	// PlannedEndDate_Gte is the minimum planned end date
+	PlannedEndDate_Gte *time.Time `json:"planned_end_date__gte"`
+	// PlannedEndDate_Lte is the maximum planned end date
+	PlannedEndDate_Lte *time.Time `json:"planned_end_date__lte"`
+
+	// ActualStartDate_Gte is the minimum actual start date
+	ActualStartDate_Gte *time.Time `json:"actual_start_date__gte"`
+	// ActualStartDate_Lte is the maximum actual start date
+	ActualStartDate_Lte *time.Time `json:"actual_start_date__lte"`
+
+	// ActualEndDate_Gte is the minimum actual end date
+	ActualEndDate_Gte *time.Time `json:"actual_end_date__gte"`
+	// ActualEndDate_Lte is the maximum actual end date
+	ActualEndDate_Lte *time.Time `json:"actual_end_date__lte"`
+
+	// CreatedAt_Gte is the start time of the task creation time to search for
+	CreatedAt_Gte *time.Time `json:"created_at__gte"`
+	// CreatedAt_Lte is the end time of the task creation time to search for
+	CreatedAt_Lte *time.Time `json:"created_at__lte"`
+
+	// UpdatedAt_Gte is the start time of the task update time to search for
+	UpdatedAt_Gte *time.Time `json:"updated_at__gte"`
+	// UpdatedAt_Lte is the end time of the task update time to search for
+	UpdatedAt_Lte *time.Time `json:"updated_at__lte"`
+
+	// Tags_Contains searches for tasks containing all specified tags
+	Tags_Contains []string `json:"tags__contains"`
+
+	// QueryParams holds pagination, sorting, and filtering options
+	QueryParams `json:",inline"`
+}
+
+// AllowedSortFields returns the allowed fields for sorting
+func (q *TaskQuery) AllowedSortFields() map[string]string {
+	return map[string]string{
+		"id":                 "id",
+		"name":               "name",
+		"code":               "code",
+		"status":             "status",
+		"priority":           "priority",
+		"level":              "level",
+		"order":              "order",
+		"progress":           "progress",
+		"estimated_hours":    "estimated_hours",
+		"actual_hours":       "actual_hours",
+		"planned_start_date": "planned_start_date",
+		"planned_end_date":   "planned_end_date",
+		"actual_start_date":  "actual_start_date",
+		"actual_end_date":    "actual_end_date",
+		"created_at":         "created_at",
+		"updated_at":         "updated_at",
+	}
+}
+
+// AllowedFilterFields returns the allowed fields for filtering
+func (q *TaskQuery) AllowedFilterFields() map[string]string {
+	return map[string]string{
+		"id":                 "id",
+		"project_id":         "project_id",
+		"milestone_id":       "milestone_id",
+		"parent_id":          "parent_id",
+		"name":               "name",
+		"code":               "code",
+		"status":             "status",
+		"priority":           "priority",
+		"level":              "level",
+		"assignee_id":        "assignee_id",
+		"is_critical_path":   "is_critical_path",
+		"progress":           "progress",
+		"estimated_hours":    "estimated_hours",
+		"actual_hours":       "actual_hours",
+		"planned_start_date": "planned_start_date",
+		"planned_end_date":   "planned_end_date",
+		"actual_start_date":  "actual_start_date",
+		"actual_end_date":    "actual_end_date",
+		"created_at":         "created_at",
+		"updated_at":         "updated_at",
+	}
+}
+

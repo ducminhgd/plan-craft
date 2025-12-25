@@ -171,7 +171,7 @@ import (
     "log/slog"
     
     "github.com/ducminhgd/plan-craft/internal/requires"
-    "github.com/ducminhgd/plan-craft/internal/models"
+    "github.com/ducminhgd/plan-craft/internal/entities"
 )
 
 func main() {

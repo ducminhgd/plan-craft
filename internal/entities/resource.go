@@ -1,4 +1,4 @@
-package models
+package entities
 
 import (
 	"errors"
@@ -393,4 +393,126 @@ func (ra *ResourceAllocation) EstimatedEffortHours(projectRole *ProjectRole, res
 	totalHours := totalWorkingDays * hoursPerDay * (ra.AllocationPercent / 100.0)
 
 	return totalHours
+}
+
+// ResourceQuery is the query for searching resources
+type ResourceQuery struct {
+	// ID_In is a list of IDs to search for
+	ID_In []uint `json:"id__in"`
+
+	// Name is the name of the resource
+	Name string `json:"name"`
+	// Name_Like is the name of the resource to search for (case-insensitive)
+	Name_Like string `json:"name__like"`
+
+	// Email is the email of the resource
+	Email string `json:"email"`
+	// Email_Like is the email of the resource to search for (case-insensitive)
+	Email_Like string `json:"email__like"`
+
+	// Role is the role of the resource
+	Role string `json:"role"`
+	// Role_Like is the role of the resource to search for (case-insensitive)
+	Role_Like string `json:"role__like"`
+
+	// IsActive filters for active/inactive resources
+	IsActive *bool `json:"is_active"`
+
+	// Skills_Contains searches for resources with all specified skills
+	Skills_Contains []string `json:"skills__contains"`
+
+	// CreatedAt_Gte is the start time of the resource creation time to search for
+	CreatedAt_Gte *time.Time `json:"created_at__gte"`
+	// CreatedAt_Lte is the end time of the resource creation time to search for
+	CreatedAt_Lte *time.Time `json:"created_at__lte"`
+
+	// UpdatedAt_Gte is the start time of the resource update time to search for
+	UpdatedAt_Gte *time.Time `json:"updated_at__gte"`
+	// UpdatedAt_Lte is the end time of the resource update time to search for
+	UpdatedAt_Lte *time.Time `json:"updated_at__lte"`
+
+	// QueryParams holds pagination, sorting, and filtering options
+	QueryParams `json:",inline"`
+}
+
+// AllowedSortFields returns the allowed fields for sorting
+func (q *ResourceQuery) AllowedSortFields() map[string]string {
+	return map[string]string{
+		"id":         "id",
+		"name":       "name",
+		"email":      "email",
+		"role":       "role",
+		"is_active":  "is_active",
+		"created_at": "created_at",
+		"updated_at": "updated_at",
+	}
+}
+
+// AllowedFilterFields returns the allowed fields for filtering
+func (q *ResourceQuery) AllowedFilterFields() map[string]string {
+	return map[string]string{
+		"id":         "id",
+		"name":       "name",
+		"email":      "email",
+		"role":       "role",
+		"is_active":  "is_active",
+		"created_at": "created_at",
+		"updated_at": "updated_at",
+	}
+}
+
+// ProjectRoleQuery is the query for searching project roles
+type ProjectRoleQuery struct {
+	// ID_In is a list of IDs to search for
+	ID_In []uint `json:"id__in"`
+
+	// ProjectID is the project ID
+	ProjectID *uint `json:"project_id"`
+	// ProjectID_In is a list of project IDs to search for
+	ProjectID_In []uint `json:"project_id__in"`
+
+	// ResourceID is the resource ID
+	ResourceID *uint `json:"resource_id"`
+	// ResourceID_In is a list of resource IDs to search for
+	ResourceID_In []uint `json:"resource_id__in"`
+
+	// Role is the role in the project
+	Role string `json:"role"`
+	// Role_Like is the role to search for (case-insensitive)
+	Role_Like string `json:"role__like"`
+
+	// Level is the level (Junior, Mid, Senior, Lead)
+	Level string `json:"level"`
+	// Level_In is a list of levels to search for
+	Level_In []string `json:"level__in"`
+
+	// IsActive filters for active/inactive project roles
+	IsActive *bool `json:"is_active"`
+
+	// QueryParams holds pagination, sorting, and filtering options
+	QueryParams `json:",inline"`
+}
+
+// AllowedSortFields returns the allowed fields for sorting
+func (q *ProjectRoleQuery) AllowedSortFields() map[string]string {
+	return map[string]string{
+		"id":         "id",
+		"role":       "role",
+		"level":      "level",
+		"is_active":  "is_active",
+		"created_at": "created_at",
+		"updated_at": "updated_at",
+	}
+}
+
+// AllowedFilterFields returns the allowed fields for filtering
+func (q *ProjectRoleQuery) AllowedFilterFields() map[string]string {
+	return map[string]string{
+		"id":          "id",
+		"project_id":  "project_id",
+		"resource_id": "resource_id",
+		"role":        "role",
+		"level":       "level",
+		"is_active":   "is_active",
+	}
 }
