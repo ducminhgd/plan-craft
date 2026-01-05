@@ -3,6 +3,7 @@ module github.com/ducminhgd/plan-craft
 go 1.23
 
 require (
+	github.com/onrik/gorm-slog v1.1.4
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.11.1
 	gorm.io/driver/sqlite v1.6.0

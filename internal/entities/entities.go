@@ -1,10 +1,35 @@
 package entities
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
 	"gorm.io/gorm"
+)
+
+var (
+	ErrRecordNotFound                = errors.New("record not found")
+	ErrInvalidTransaction            = errors.New("invalid transaction")
+	ErrNotImplemented                = errors.New("not implemented")
+	ErrMissingWhereClause            = errors.New("missing where clause")
+	ErrUnsupportedRelation           = errors.New("unsupported relation")
+	ErrPrimaryKeyRequired            = errors.New("primary key required")
+	ErrModelValueRequired            = errors.New("model value required")
+	ErrModelAccessibleFieldsRequired = errors.New("model accessible fields required")
+	ErrSubQueryRequired              = errors.New("sub query required")
+	ErrInvalidData                   = errors.New("invalid data")
+	ErrUnsupportedDriver             = errors.New("unsupported driver")
+	ErrRegistered                    = errors.New("registered")
+	ErrInvalidField                  = errors.New("invalid field")
+	ErrEmptySlice                    = errors.New("empty slice")
+	ErrDryRunModeUnsupported         = errors.New("dry run mode unsupported")
+	ErrInvalidDB                     = errors.New("invalid db")
+	ErrInvalidValue                  = errors.New("invalid value")
+	ErrInvalidValueOfLength          = errors.New("invalid value of length")
+	ErrPreloadNotAllowed             = errors.New("preload not allowed")
+	ErrDuplicatedKey                 = errors.New("duplicated key")
+	ErrForeignKeyViolated            = errors.New("foreign key violated")
+	ErrCheckConstraintViolated       = errors.New("check constraint violated")
 )
 
 // Pagination defines pagination parameters for queries
@@ -120,183 +145,18 @@ func (s *Sort) Apply(db *gorm.DB, allowedFields map[string]string) *gorm.DB {
 	return db.Order(orderClause)
 }
 
-// FilterOperator represents filter comparison operators
-type FilterOperator string
-
-const (
-	FilterOpEqual          FilterOperator = "eq"       // Equal
-	FilterOpNotEqual       FilterOperator = "ne"       // Not equal
-	FilterOpGreaterThan    FilterOperator = "gt"       // Greater than
-	FilterOpGreaterOrEqual FilterOperator = "gte"      // Greater than or equal
-	FilterOpLessThan       FilterOperator = "lt"       // Less than
-	FilterOpLessOrEqual    FilterOperator = "lte"      // Less than or equal
-	FilterOpLike           FilterOperator = "like"     // SQL LIKE
-	FilterOpNotLike        FilterOperator = "notlike"  // SQL NOT LIKE
-	FilterOpIn             FilterOperator = "in"       // IN clause
-	FilterOpNotIn          FilterOperator = "notin"    // NOT IN clause
-	FilterOpIsNull         FilterOperator = "isnull"   // IS NULL
-	FilterOpIsNotNull      FilterOperator = "notnull"  // IS NOT NULL
-	FilterOpBetween        FilterOperator = "between"  // BETWEEN
-	FilterOpContains       FilterOperator = "contains" // Case-insensitive contains
-)
-
-// IsValid checks if the filter operator is valid
-func (f FilterOperator) IsValid() bool {
-	switch f {
-	case FilterOpEqual, FilterOpNotEqual, FilterOpGreaterThan, FilterOpGreaterOrEqual,
-		FilterOpLessThan, FilterOpLessOrEqual, FilterOpLike, FilterOpNotLike,
-		FilterOpIn, FilterOpNotIn, FilterOpIsNull, FilterOpIsNotNull,
-		FilterOpBetween, FilterOpContains:
-		return true
-	}
-	return false
-}
-
-// Filter represents a single filter condition
-type Filter struct {
-	Field    string         `json:"field"`    // Field name to filter
-	Operator FilterOperator `json:"operator"` // Comparison operator
-	Value    interface{}    `json:"value"`    // Filter value(s)
-}
-
-// Apply applies a single filter to a GORM query
-// allowedFields is a whitelist of fields that can be filtered
-func (f *Filter) Apply(db *gorm.DB, allowedFields map[string]string) *gorm.DB {
-	if f.Field == "" || !f.Operator.IsValid() {
-		return db
-	}
-
-	// Validate field against whitelist
-	dbField, ok := allowedFields[f.Field]
-	if !ok {
-		return db // Ignore invalid fields
-	}
-
-	switch f.Operator {
-	case FilterOpEqual:
-		return db.Where(fmt.Sprintf("%s = ?", dbField), f.Value)
-	case FilterOpNotEqual:
-		return db.Where(fmt.Sprintf("%s != ?", dbField), f.Value)
-	case FilterOpGreaterThan:
-		return db.Where(fmt.Sprintf("%s > ?", dbField), f.Value)
-	case FilterOpGreaterOrEqual:
-		return db.Where(fmt.Sprintf("%s >= ?", dbField), f.Value)
-	case FilterOpLessThan:
-		return db.Where(fmt.Sprintf("%s < ?", dbField), f.Value)
-	case FilterOpLessOrEqual:
-		return db.Where(fmt.Sprintf("%s <= ?", dbField), f.Value)
-	case FilterOpLike:
-		return db.Where(fmt.Sprintf("%s LIKE ?", dbField), f.Value)
-	case FilterOpNotLike:
-		return db.Where(fmt.Sprintf("%s NOT LIKE ?", dbField), f.Value)
-	case FilterOpIn:
-		return db.Where(fmt.Sprintf("%s IN ?", dbField), f.Value)
-	case FilterOpNotIn:
-		return db.Where(fmt.Sprintf("%s NOT IN ?", dbField), f.Value)
-	case FilterOpIsNull:
-		return db.Where(fmt.Sprintf("%s IS NULL", dbField))
-	case FilterOpIsNotNull:
-		return db.Where(fmt.Sprintf("%s IS NOT NULL", dbField))
-	case FilterOpBetween:
-		// Value should be a slice with 2 elements [min, max]
-		if values, ok := f.Value.([]interface{}); ok && len(values) == 2 {
-			return db.Where(fmt.Sprintf("%s BETWEEN ? AND ?", dbField), values[0], values[1])
-		}
-	case FilterOpContains:
-		// Case-insensitive contains using LIKE
-		pattern := fmt.Sprintf("%%%v%%", f.Value)
-		return db.Where(fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", dbField), pattern)
-	}
-
-	return db
-}
-
-// Filters represents a collection of filters with logical operations
-type Filters struct {
-	Conditions []Filter `json:"conditions"` // Filter conditions
-	Logic      string   `json:"logic"`      // Logical operator: "AND" or "OR" (default: "AND")
-}
-
-// NewFilters creates a new Filters with defaults
-func NewFilters(conditions []Filter, logic string) *Filters {
-	if logic == "" {
-		logic = "AND"
-	}
-	logic = strings.ToUpper(logic)
-	if logic != "AND" && logic != "OR" {
-		logic = "AND" // Default to AND for invalid logic
-	}
-	return &Filters{
-		Conditions: conditions,
-		Logic:      logic,
-	}
-}
-
-// Apply applies all filters to a GORM query
-// allowedFields is a whitelist of fields that can be filtered
-func (f *Filters) Apply(db *gorm.DB, allowedFields map[string]string) *gorm.DB {
-	if len(f.Conditions) == 0 {
-		return db
-	}
-
-	if f.Logic == "OR" {
-		// Apply OR logic
-		return db.Where(func(tx *gorm.DB) *gorm.DB {
-			for i, condition := range f.Conditions {
-				if i == 0 {
-					tx = condition.Apply(tx, allowedFields)
-				} else {
-					tx = tx.Or(func(subTx *gorm.DB) *gorm.DB {
-						return condition.Apply(subTx, allowedFields)
-					})
-				}
-			}
-			return tx
-		})
-	}
-
-	// Apply AND logic (default)
-	for _, condition := range f.Conditions {
-		db = condition.Apply(db, allowedFields)
-	}
-	return db
-}
-
 // QueryParams combines pagination, sorting, and filtering
 type QueryParams struct {
 	Pagination *Pagination `json:"pagination,omitempty"`
-	Sort       *Sort       `json:"sort,omitempty"`
-	Filters    *Filters    `json:"filters,omitempty"`
+	Sorts      []*Sort     `json:"sorts,omitempty"`
 }
 
 // NewQueryParams creates a new QueryParams with defaults
 func NewQueryParams() *QueryParams {
 	return &QueryParams{
 		Pagination: NewPagination(1, 20),
-		Sort:       &Sort{},
-		Filters:    &Filters{Logic: "AND"},
+		Sorts:      []*Sort{},
 	}
-}
-
-// Apply applies all query parameters to a GORM query
-// allowedSortFields and allowedFilterFields are whitelists of fields
-func (q *QueryParams) Apply(db *gorm.DB, allowedSortFields, allowedFilterFields map[string]string) *gorm.DB {
-	// Apply filters first
-	if q.Filters != nil {
-		db = q.Filters.Apply(db, allowedFilterFields)
-	}
-
-	// Apply sorting
-	if q.Sort != nil {
-		db = q.Sort.Apply(db, allowedSortFields)
-	}
-
-	// Apply pagination last
-	if q.Pagination != nil {
-		db = q.Pagination.Apply(db)
-	}
-
-	return db
 }
 
 // Enums and constants

@@ -10,15 +10,29 @@ import (
 )
 
 const (
-	ClientStatusActive   = 1
-	ClientStatusInactive = 0
+	ClientStatusUnknown  = 0
+	ClientStatusInactive = 1
+	ClientStatusActive   = 2
 )
 
 var (
 	ErrClientNameRequired  = errors.New("client name is required")
 	ErrClientEmailRequired = errors.New("client email is required")
 	ErrInvalidEmail        = errors.New("invalid email address")
-	ErrClientInvalidStatus = errors.New("client status must be 0 (inactive) or 1 (active)")
+	ErrClientInvalidStatus = errors.New("client status must be 1 (inactive) or 2 (active)")
+
+	ClientAllowedSortField = map[string]string{
+		"id":             "id",
+		"name":           "name",
+		"email":          "email",
+		"phone":          "phone",
+		"address":        "address",
+		"contact_person": "contact_person",
+		"notes":          "notes",
+		"status":         "status",
+		"created_at":     "created_at",
+		"updated_at":     "updated_at",
+	}
 )
 
 // Client represents a client entity
@@ -96,4 +110,24 @@ func (c *Client) BeforeCreate(tx *gorm.DB) error {
 // BeforeUpdate is a GORM hook that runs before updating a client
 func (c *Client) BeforeUpdate(tx *gorm.DB) error {
 	return c.Validate()
+}
+
+type ClientQueryParams struct {
+	ID_In              []uint     `json:"id_in"`
+	Name               string     `json:"name"`
+	Name_Like          string     `json:"name_like"`
+	Email              string     `json:"email"`
+	Email_Like         string     `json:"email_like"`
+	Phone              string     `json:"phone"`
+	Phone_Like         string     `json:"phone_like"`
+	Address_Like       string     `json:"address_like"`
+	ContactPerson_Like string     `json:"contact_person_like"`
+	Notes_Like         string     `json:"notes_like"`
+	Status             uint       `json:"status"`
+	Status_In          []uint     `json:"status_in"`
+	CreatedAt_Gte      *time.Time `json:"created_at_gte"`
+	CreatedAt_Lte      *time.Time `json:"created_at_lte"`
+	UpdatedAt_Gte      *time.Time `json:"updated_at_gte"`
+	UpdatedAt_Lte      *time.Time `json:"updated_at_lte"`
+	*QueryParams
 }

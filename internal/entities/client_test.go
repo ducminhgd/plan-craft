@@ -54,7 +54,7 @@ func TestClientValidateStatus(t *testing.T) {
 	}{
 		{"Valid: Active status", ClientStatusActive, nil},
 		{"Valid: Inactive status", ClientStatusInactive, nil},
-		{"Invalid: Unknown status", 2, ErrClientInvalidStatus},
+		{"Invalid: Status value 3", 3, ErrClientInvalidStatus},
 		{"Invalid: High value", 999, ErrClientInvalidStatus},
 	}
 
