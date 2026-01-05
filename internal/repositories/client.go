@@ -45,10 +45,8 @@ func (r *ClientRepository) Create(ctx context.Context, client *entities.Client) 
 			internal.Logger.Error("check constraint violated", "repository", "client", "method", "Create", "error", err)
 			return nil, entities.ErrCheckConstraintViolated
 		}
-		if err != nil {
-			internal.Logger.Error("failed to create client", "repository", "client", "method", "Create", "error", err)
-			return nil, err
-		}
+		internal.Logger.Error("failed to create client", "repository", "client", "method", "Create", "error", err)
+		return nil, err
 	}
 	return client, nil
 }
