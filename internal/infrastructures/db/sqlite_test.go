@@ -1,4 +1,4 @@
-package requires
+package db
 
 import (
 	"os"

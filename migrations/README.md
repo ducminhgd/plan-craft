@@ -101,13 +101,13 @@ This will create two files:
 
 Before running migrations in production:
 
-- [ ] Migration has been tested on development environment
-- [ ] Migration has been tested on staging environment with production-like data
-- [ ] Both up and down migrations have been tested
-- [ ] Migration is idempotent (can be run multiple times safely)
-- [ ] Backup of production database exists
-- [ ] Rollback plan is documented
-- [ ] Team has been notified of planned migration
+- Migration has been tested on development environment
+- Migration has been tested on staging environment with production-like data
+- Both up and down migrations have been tested
+- Migration is idempotent (can be run multiple times safely)
+- Backup of production database exists
+- Rollback plan is documented
+- Team has been notified of planned migration
 
 ## Troubleshooting
 
