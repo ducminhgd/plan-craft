@@ -100,7 +100,6 @@ docker-compose.override.yml
 # ===========================
 
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
