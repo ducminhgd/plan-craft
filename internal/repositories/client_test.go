@@ -623,7 +623,10 @@ func TestClientRepository_Delete(t *testing.T) {
 					Email:  "contact@acme.com",
 					Status: entities.ClientStatusActive,
 				}
-				created, _ := repo.Create(ctx, client)
+				created, err := repo.Create(ctx, client)
+				if err != nil {
+					t.Fatalf("Failed to create client: %v", err)
+				}
 				return created.ID
 			},
 			wantError: false,
@@ -705,8 +708,13 @@ func TestClientRepository_CRUD_Integration(t *testing.T) {
 }
 
 func BenchmarkClientRepository_Create(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.Client{})
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		b.Fatalf("Failed to open database: %v", err)
+	}
+	if err := db.AutoMigrate(&entities.Client{}); err != nil {
+		b.Fatalf("Failed to migrate: %v", err)
+	}
 	repo := NewClientRepository(db)
 	ctx := context.Background()
 
@@ -717,13 +725,18 @@ func BenchmarkClientRepository_Create(b *testing.B) {
 			Email:  "contact@acme.com",
 			Status: entities.ClientStatusActive,
 		}
-		repo.Create(ctx, client)
+		_, _ = repo.Create(ctx, client)
 	}
 }
 
 func BenchmarkClientRepository_Get(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.Client{})
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		b.Fatalf("Failed to open database: %v", err)
+	}
+	if err := db.AutoMigrate(&entities.Client{}); err != nil {
+		b.Fatalf("Failed to migrate: %v", err)
+	}
 	repo := NewClientRepository(db)
 	ctx := context.Background()
 
@@ -732,17 +745,25 @@ func BenchmarkClientRepository_Get(b *testing.B) {
 		Email:  "contact@acme.com",
 		Status: entities.ClientStatusActive,
 	}
-	created, _ := repo.Create(ctx, client)
+	created, err := repo.Create(ctx, client)
+	if err != nil {
+		b.Fatalf("Failed to create client: %v", err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		repo.GetOne(ctx, created.ID)
+		_, _ = repo.GetOne(ctx, created.ID)
 	}
 }
 
 func BenchmarkClientRepository_Update(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.Client{})
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		b.Fatalf("Failed to open database: %v", err)
+	}
+	if err := db.AutoMigrate(&entities.Client{}); err != nil {
+		b.Fatalf("Failed to migrate: %v", err)
+	}
 	repo := NewClientRepository(db)
 	ctx := context.Background()
 
@@ -751,11 +772,14 @@ func BenchmarkClientRepository_Update(b *testing.B) {
 		Email:  "contact@acme.com",
 		Status: entities.ClientStatusActive,
 	}
-	created, _ := repo.Create(ctx, client)
+	created, err := repo.Create(ctx, client)
+	if err != nil {
+		b.Fatalf("Failed to create client: %v", err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		created.Name = "Updated Name"
-		repo.Update(ctx, created)
+		_, _ = repo.Update(ctx, created)
 	}
 }
