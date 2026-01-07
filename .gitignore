@@ -119,3 +119,5 @@ logs/
 # Compiled binaries
 /bin/
 /tmp/
+data/
+
