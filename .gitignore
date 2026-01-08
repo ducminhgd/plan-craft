@@ -40,6 +40,8 @@ node_modules/
 # Production builds
 /build
 /dist
+/frontend/dist
+dist/
 
 # Testing
 /coverage
@@ -120,4 +122,3 @@ logs/
 /bin/
 /tmp/
 data/
-frontend/dist/
