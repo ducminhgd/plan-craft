@@ -36,8 +36,15 @@ func (s *ClientService) GetClient(ctx context.Context, id uint) (*entities.Clien
 }
 
 // GetClients retrieves multiple clients with optional query parameters
-func (s *ClientService) GetClients(ctx context.Context, params *entities.ClientQueryParams) ([]*entities.Client, int64, error) {
-	return s.repo.GetMany(ctx, params)
+func (s *ClientService) GetClients(ctx context.Context, params *entities.ClientQueryParams) (*entities.ClientListResponse, error) {
+	data, total, err := s.repo.GetMany(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &entities.ClientListResponse{
+		Data:  data,
+		Total: total,
+	}, nil
 }
 
 // UpdateClient updates an existing client

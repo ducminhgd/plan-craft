@@ -46,9 +46,9 @@ func (a *App) Greet(name string) string {
 // Client service wrapper methods for Wails bindings
 
 // GetClients retrieves multiple clients with optional query parameters
-func (a *App) GetClients(params *entities.ClientQueryParams) ([]*entities.Client, int64, error) {
+func (a *App) GetClients(params *entities.ClientQueryParams) (*entities.ClientListResponse, error) {
 	if a.clientService == nil {
-		return nil, 0, fmt.Errorf("client service not initialized")
+		return nil, fmt.Errorf("client service not initialized")
 	}
 	return a.clientService.GetClients(a.ctx, params)
 }

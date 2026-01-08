@@ -131,3 +131,9 @@ type ClientQueryParams struct {
 	UpdatedAt_Lte      *time.Time `json:"updated_at_lte"`
 	*QueryParams
 }
+
+// ClientListResponse represents the response for GetClients
+type ClientListResponse struct {
+	Data  []*Client `json:"data"`
+	Total int64     `json:"total"`
+}

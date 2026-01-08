@@ -8,7 +8,7 @@ export function DeleteClient(arg1:number):Promise<void>;
 
 export function GetClient(arg1:number):Promise<entities.Client>;
 
-export function GetClients(arg1:entities.ClientQueryParams):Promise<Array<entities.Client>>;
+export function GetClients(arg1:entities.ClientQueryParams):Promise<entities.ClientListResponse>;
 
 export function Greet(arg1:string):Promise<string>;
 
