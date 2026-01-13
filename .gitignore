@@ -40,8 +40,6 @@ node_modules/
 # Production builds
 /build
 /dist
-/frontend/dist
-dist/
 
 # Testing
 /coverage
