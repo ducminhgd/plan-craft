@@ -1,0 +1,23 @@
+.menu-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.menu-bar .ant-menu {
+  line-height: 40px;
+  height: 40px;
+}
+
+.menu-bar .ant-menu-item,
+.menu-bar .ant-menu-submenu-title {
+  padding: 0 15px !important;
+  height: 40px;
+  line-height: 40px;
+}
+
+.menu-bar .ant-menu-horizontal {
+  border-bottom: none;
+}

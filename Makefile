@@ -1,21 +1,63 @@
-.PHONY: help build run clean test deps migrate db-clean
+.PHONY: help build run clean test deps migrate db-clean frontend-install frontend-build frontend-dev wails-dev wails-build
 
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  deps      - Download and install dependencies"
-	@echo "  build     - Build the application"
-	@echo "  run       - Run the application"
-	@echo "  test      - Run tests"
-	@echo "  clean     - Clean build artifacts"
-	@echo "  db-clean  - Remove database file"
-	@echo "  migrate   - Run database migrations"
+	@echo "  deps             - Download and install Go dependencies"
+	@echo "  frontend-install - Install frontend dependencies"
+	@echo "  frontend-build   - Build frontend for production"
+	@echo "  frontend-dev     - Run frontend dev server"
+	@echo "  wails-dev        - Run Wails in development mode (recommended)"
+	@echo "  wails-build      - Build Wails application for production"
+	@echo "  build            - Build the application"
+	@echo "  run              - Run the application"
+	@echo "  test             - Run tests"
+	@echo "  clean            - Clean build artifacts"
+	@echo "  db-clean         - Remove database file"
+	@echo "  migrate          - Run database migrations"
 
-# Download and install dependencies
+# Download and install Go dependencies
 deps:
-	@echo "Downloading dependencies..."
+	@echo "Downloading Go dependencies..."
 	go mod download
 	go mod tidy
+
+# Install frontend dependencies
+frontend-install:
+	@echo "Installing frontend dependencies..."
+	cd frontend && npm install
+
+# Build frontend for production
+frontend-build: frontend-install
+	@echo "Building frontend..."
+	cd frontend && npm run build
+
+# Run frontend dev server
+frontend-dev:
+	@echo "Starting frontend dev server..."
+	cd frontend && npm run dev
+
+# Run Wails in development mode (recommended)
+wails-dev: frontend-install
+	@echo "Starting Wails development mode..."
+	@if command -v wails > /dev/null; then \
+		wails dev; \
+	else \
+		echo "❌ Wails is not installed. Install it with:"; \
+		echo "   go install github.com/wailsapp/wails/v2/cmd/wails@latest"; \
+		exit 1; \
+	fi
+
+# Build Wails application for production
+wails-build: deps frontend-build
+	@echo "Building Wails application..."
+	@if command -v wails > /dev/null; then \
+		wails build; \
+	else \
+		echo "❌ Wails is not installed. Install it with:"; \
+		echo "   go install github.com/wailsapp/wails/v2/cmd/wails@latest"; \
+		exit 1; \
+	fi
 
 # Build the application
 build: deps
@@ -36,7 +78,10 @@ test:
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf bin/
+	rm -rf build/bin/
 	rm -f plancraft
+	rm -rf frontend/dist/*
+	@echo "✅ Clean complete"
 
 # Remove database file
 db-clean:

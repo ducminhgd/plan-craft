@@ -100,7 +100,6 @@ docker-compose.override.yml
 # ===========================
 
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
@@ -120,3 +119,4 @@ logs/
 # Compiled binaries
 /bin/
 /tmp/
+data/

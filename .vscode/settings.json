@@ -1,0 +1,5 @@
+{
+    "go.goroot": "~/sdk/go1.24.5",
+    "go.gopath": "~/go",
+    "go.diagnostic.vulncheck": "Imports"
+}
