@@ -84,29 +84,41 @@ func (r *ClientRepository) GetMany(ctx context.Context, qParams *entities.Client
 	if qParams.Name != "" {
 		q = q.Where("name = @Name", sql.Named("Name", qParams.Name))
 	}
-	if qParams.Name_Like != "" {
-		q = q.Where("name LIKE @Name_Like", sql.Named("Name_Like", "%"+qParams.Name_Like+"%"))
-	}
 	if qParams.Email != "" {
 		q = q.Where("email = @Email", sql.Named("Email", qParams.Email))
-	}
-	if qParams.Email_Like != "" {
-		q = q.Where("email LIKE @Email_Like", sql.Named("Email_Like", "%"+qParams.Email_Like+"%"))
 	}
 	if qParams.Phone != "" {
 		q = q.Where("phone = @Phone", sql.Named("Phone", qParams.Phone))
 	}
-	if qParams.Phone_Like != "" {
-		q = q.Where("phone LIKE @Phone_Like", sql.Named("Phone_Like", "%"+qParams.Phone_Like+"%"))
-	}
-	if qParams.Address_Like != "" {
-		q = q.Where("address LIKE @Address_Like", sql.Named("Address_Like", "%"+qParams.Address_Like+"%"))
-	}
-	if qParams.ContactPerson_Like != "" {
-		q = q.Where("contact_person LIKE @ContactPerson_Like", sql.Named("ContactPerson_Like", "%"+qParams.ContactPerson_Like+"%"))
-	}
-	if qParams.Notes_Like != "" {
-		q = q.Where("notes LIKE @Notes_Like", sql.Named("Notes_Like", "%"+qParams.Notes_Like+"%"))
+
+	// Group LIKE conditions with OR for search functionality
+	// These fields are used by the frontend search box and should match ANY of them
+	if qParams.Name_Like != "" || qParams.Email_Like != "" ||
+		qParams.Phone_Like != "" || qParams.Address_Like != "" ||
+		qParams.ContactPerson_Like != "" || qParams.Notes_Like != "" {
+
+		orConditions := r.db.Where("1 = 0") // Start with false condition
+
+		if qParams.Name_Like != "" {
+			orConditions = orConditions.Or("name LIKE ?", "%"+qParams.Name_Like+"%")
+		}
+		if qParams.Email_Like != "" {
+			orConditions = orConditions.Or("email LIKE ?", "%"+qParams.Email_Like+"%")
+		}
+		if qParams.Phone_Like != "" {
+			orConditions = orConditions.Or("phone LIKE ?", "%"+qParams.Phone_Like+"%")
+		}
+		if qParams.Address_Like != "" {
+			orConditions = orConditions.Or("address LIKE ?", "%"+qParams.Address_Like+"%")
+		}
+		if qParams.ContactPerson_Like != "" {
+			orConditions = orConditions.Or("contact_person LIKE ?", "%"+qParams.ContactPerson_Like+"%")
+		}
+		if qParams.Notes_Like != "" {
+			orConditions = orConditions.Or("notes LIKE ?", "%"+qParams.Notes_Like+"%")
+		}
+
+		q = q.Where(orConditions)
 	}
 	if qParams.Status != entities.ClientStatusUnknown {
 		q = q.Where("status = @Status", sql.Named("Status", qParams.Status))

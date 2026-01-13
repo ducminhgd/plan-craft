@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Typography, message, Input, Select, Checkbox, Modal } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Typography, message, Input, Select, Modal } from 'antd';
+import { PlusOutlined, EditOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { GetClients, UpdateClient } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
-import type { CheckboxChangeEvent } from 'antd/es/checkbox';
 import type { TableRowSelection } from 'antd/es/table/interface';
 
 const { Title } = Typography;
@@ -18,7 +17,7 @@ export default function ClientList() {
 
   // Filter states
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(0);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,7 +46,7 @@ export default function ClientList() {
       }
 
       // Apply status filter
-      if (statusFilter !== undefined) {
+      if (statusFilter !== 0 && statusFilter !== undefined) {
         params.status = statusFilter;
       }
 
@@ -65,22 +64,25 @@ export default function ClientList() {
     loadClients();
   }, [currentPage, pageSize, searchText, statusFilter]);
 
-  const handleDeactivate = async (client: entities.Client) => {
+  const handleToggleStatus = async (client: entities.Client) => {
+    const newStatus = client.status === 2 ? 1 : 2;
+    const statusText = newStatus === 2 ? 'activate' : 'deactivate';
+
     Modal.confirm({
-      title: 'Confirm Deactivate',
-      content: 'Are you sure you want to deactivate this client?',
-      okText: 'Deactivate',
-      okType: 'danger',
+      title: `Confirm ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
+      content: `Are you sure you want to ${statusText} this client?`,
+      okText: statusText.charAt(0).toUpperCase() + statusText.slice(1),
+      okType: newStatus === 1 ? 'danger' : 'primary',
       cancelText: 'Cancel',
       onOk: async () => {
         try {
           // Create a new client instance with updated status
-          const updatedClient = Object.assign(Object.create(Object.getPrototypeOf(client)), client, { status: 1 });
+          const updatedClient = Object.assign(Object.create(Object.getPrototypeOf(client)), client, { status: newStatus });
           await UpdateClient(updatedClient);
-          message.success('Client deactivated');
+          message.success(`Client ${statusText}d successfully`);
           loadClients();
         } catch (error) {
-          message.error('Failed to deactivate client');
+          message.error(`Failed to ${statusText} client`);
         }
       },
     });
@@ -92,6 +94,9 @@ export default function ClientList() {
   };
 
   const handleStatusChange = (value: number | undefined) => {
+    if (value == undefined) {
+      value = 0;
+    }
     setStatusFilter(value);
     setCurrentPage(1); // Reset to first page on filter change
   };
@@ -159,12 +164,12 @@ export default function ClientList() {
             size="small"
           />
           <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => handleDeactivate(record)}
+            icon={<SyncOutlined />}
+            type={record.status === 2 ? 'default' : 'primary'}
+            danger={record.status === 2}
+            onClick={() => handleToggleStatus(record)}
             size="small"
-            disabled={record.status === 1}
-            title={record.status === 1 ? 'Client is already inactive' : 'Deactivate client'}
+            title={record.status === 2 ? 'Deactivate client' : 'Activate client'}
           />
         </Space>
       ),
@@ -273,7 +278,7 @@ export default function ClientList() {
           onChange={handleStatusChange}
           value={statusFilter}
         >
-          <Select.Option value={undefined}>-- Status --</Select.Option>
+          <Select.Option value={0}>-- Status --</Select.Option>
           <Select.Option value={2}>Active</Select.Option>
           <Select.Option value={1}>Inactive</Select.Option>
         </Select>
