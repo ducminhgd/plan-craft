@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Table, Button, Space, Typography, message, Input, Select, Checkbox, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { GetClients, DeleteClient } from '../../../wailsjs/go/main/App';
+import { GetClients, UpdateClient } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
 import type { TableRowSelection } from 'antd/es/table/interface';
@@ -65,20 +65,22 @@ export default function ClientList() {
     loadClients();
   }, [currentPage, pageSize, searchText, statusFilter]);
 
-  const handleDelete = async (id: number) => {
+  const handleDeactivate = async (client: entities.Client) => {
     Modal.confirm({
-      title: 'Confirm Delete',
-      content: 'Are you sure you want to delete this client?',
-      okText: 'Delete',
+      title: 'Confirm Deactivate',
+      content: 'Are you sure you want to deactivate this client?',
+      okText: 'Deactivate',
       okType: 'danger',
       cancelText: 'Cancel',
       onOk: async () => {
         try {
-          await DeleteClient(id);
-          message.success('Client deleted');
+          // Create a new client instance with updated status
+          const updatedClient = Object.assign(Object.create(Object.getPrototypeOf(client)), client, { status: 1 });
+          await UpdateClient(updatedClient);
+          message.success('Client deactivated');
           loadClients();
         } catch (error) {
-          message.error('Failed to delete client');
+          message.error('Failed to deactivate client');
         }
       },
     });
@@ -159,8 +161,10 @@ export default function ClientList() {
           <Button
             icon={<DeleteOutlined />}
             danger
-            onClick={() => handleDelete(record.id)}
+            onClick={() => handleDeactivate(record)}
             size="small"
+            disabled={record.status === 1}
+            title={record.status === 1 ? 'Client is already inactive' : 'Deactivate client'}
           />
         </Space>
       ),
