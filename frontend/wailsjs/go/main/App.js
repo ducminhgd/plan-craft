@@ -34,10 +34,6 @@ export function GetHumanResources(arg1) {
   return window['go']['main']['App']['GetHumanResources'](arg1);
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
-}
-
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
 }

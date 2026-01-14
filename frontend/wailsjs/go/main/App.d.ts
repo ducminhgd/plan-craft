@@ -18,8 +18,6 @@ export function GetHumanResource(arg1:number):Promise<entities.HumanResource>;
 
 export function GetHumanResources(arg1:entities.HumanResourceQueryParams):Promise<entities.HumanResourceListResponse>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function UpdateClient(arg1:entities.Client):Promise<number>;
 
 export function UpdateHumanResource(arg1:entities.HumanResource):Promise<number>;
