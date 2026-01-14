@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS human_resources (
     name TEXT NOT NULL,
     title TEXT NOT NULL,
     level TEXT NOT NULL,
-    status INTEGER NOT NULL DEFAULT 1,
+    status INTEGER NOT NULL DEFAULT 2,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
 

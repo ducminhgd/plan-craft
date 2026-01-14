@@ -37,7 +37,7 @@ type HumanResource struct {
 	Name      string    `gorm:"not null" json:"name"`
 	Title     string    `gorm:"not null" json:"title"`
 	Level     string    `gorm:"not null" json:"level"`
-	Status    uint      `gorm:"not null;default:1" json:"status"`
+	Status    uint      `gorm:"not null;default:2" json:"status"`
 	CreatedAt time.Time `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime:milli" json:"updated_at"`
 }

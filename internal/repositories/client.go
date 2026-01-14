@@ -57,10 +57,10 @@ func (r *ClientRepository) GetOne(ctx context.Context, id uint) (*entities.Clien
 	err := r.db.WithContext(ctx).Model(&entities.Client{}).First(&client, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			internal.Logger.Error("record not found", "repository", "client", "method", "Get", "error", err)
+			internal.Logger.Error("record not found", "repository", "client", "method", "GetOne", "error", err)
 			return nil, entities.ErrRecordNotFound
 		}
-		internal.Logger.Error("failed to get client", "repository", "client", "method", "Get", "error", err)
+		internal.Logger.Error("failed to get client", "repository", "client", "method", "GetOne", "error", err)
 		return nil, err
 	}
 	return &client, err

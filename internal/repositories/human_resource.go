@@ -57,10 +57,10 @@ func (r *HRRepository) GetOne(ctx context.Context, id uint) (*entities.HumanReso
 	err := r.db.WithContext(ctx).Model(&entities.HumanResource{}).First(&humanResource, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			internal.Logger.Error("record not found", "repository", "humanResource", "method", "Get", "error", err)
+			internal.Logger.Error("record not found", "repository", "humanResource", "method", "GetOne", "error", err)
 			return nil, entities.ErrRecordNotFound
 		}
-		internal.Logger.Error("failed to get human resource", "repository", "humanResource", "method", "Get", "error", err)
+		internal.Logger.Error("failed to get human resource", "repository", "humanResource", "method", "GetOne", "error", err)
 		return nil, err
 	}
 	return &humanResource, err
