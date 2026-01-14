@@ -39,10 +39,10 @@ func TestHumanResourceRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name      string
-		humanResource        *entities.HumanResource
-		wantError bool
-		checkErr  func(*testing.T, error)
+		name          string
+		humanResource *entities.HumanResource
+		wantError     bool
+		checkErr      func(*testing.T, error)
 	}{
 		{
 			name: "Valid HumanResource creation",
@@ -604,8 +604,8 @@ func TestHumanResourceRepository_CRUDFlow(t *testing.T) {
 }
 
 func BenchmarkHRRepository_Create(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.HumanResource{})
+	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{}) //nolint:errcheck
+	_ = db.AutoMigrate(&entities.HumanResource{})               //nolint:errcheck
 	repo := NewHRRepository(db)
 	ctx := context.Background()
 
@@ -617,13 +617,13 @@ func BenchmarkHRRepository_Create(b *testing.B) {
 			Level:  "Senior",
 			Status: entities.HumanResourceStatusActive,
 		}
-		repo.Create(ctx, humanResource)
+		_, _ = repo.Create(ctx, humanResource) //nolint:errcheck
 	}
 }
 
 func BenchmarkHRRepository_GetOne(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.HumanResource{})
+	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{}) //nolint:errcheck
+	_ = db.AutoMigrate(&entities.HumanResource{})               //nolint:errcheck
 	repo := NewHRRepository(db)
 	ctx := context.Background()
 
@@ -634,17 +634,17 @@ func BenchmarkHRRepository_GetOne(b *testing.B) {
 		Level:  "Senior",
 		Status: entities.HumanResourceStatusActive,
 	}
-	created, _ := repo.Create(ctx, humanResource)
+	created, _ := repo.Create(ctx, humanResource) //nolint:errcheck
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		repo.GetOne(ctx, created.ID)
+		_, _ = repo.GetOne(ctx, created.ID) //nolint:errcheck
 	}
 }
 
 func BenchmarkHRRepository_GetMany(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&entities.HumanResource{})
+	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{}) //nolint:errcheck
+	_ = db.AutoMigrate(&entities.HumanResource{})               //nolint:errcheck
 	repo := NewHRRepository(db)
 	ctx := context.Background()
 
@@ -656,11 +656,11 @@ func BenchmarkHRRepository_GetMany(b *testing.B) {
 			Level:  "Senior",
 			Status: entities.HumanResourceStatusActive,
 		}
-		repo.Create(ctx, humanResource)
+		_, _ = repo.Create(ctx, humanResource) //nolint:errcheck
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		repo.GetMany(ctx, nil)
+		_, _, _ = repo.GetMany(ctx, nil) //nolint:errcheck
 	}
 }
