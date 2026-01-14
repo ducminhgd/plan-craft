@@ -181,6 +181,145 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class HumanResource {
+	    id: number;
+	    name: string;
+	    title: string;
+	    level: string;
+	    status: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new HumanResource(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.title = source["title"];
+	        this.level = source["level"];
+	        this.status = source["status"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class HumanResourceListResponse {
+	    data: HumanResource[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new HumanResourceListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], HumanResource);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class HumanResourceQueryParams {
+	    id_in: number[];
+	    name: string;
+	    name_like: string;
+	    title: string;
+	    title_like: string;
+	    level: string;
+	    level_like: string;
+	    status: number;
+	    status_in: number[];
+	    // Go type: time
+	    created_at_gte?: any;
+	    // Go type: time
+	    created_at_lte?: any;
+	    // Go type: time
+	    updated_at_gte?: any;
+	    // Go type: time
+	    updated_at_lte?: any;
+	    // Go type: Pagination
+	    pagination?: any;
+	    sorts?: Sort[];
+	
+	    static createFrom(source: any = {}) {
+	        return new HumanResourceQueryParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_in = source["id_in"];
+	        this.name = source["name"];
+	        this.name_like = source["name_like"];
+	        this.title = source["title"];
+	        this.title_like = source["title_like"];
+	        this.level = source["level"];
+	        this.level_like = source["level_like"];
+	        this.status = source["status"];
+	        this.status_in = source["status_in"];
+	        this.created_at_gte = this.convertValues(source["created_at_gte"], null);
+	        this.created_at_lte = this.convertValues(source["created_at_lte"], null);
+	        this.updated_at_gte = this.convertValues(source["updated_at_gte"], null);
+	        this.updated_at_lte = this.convertValues(source["updated_at_lte"], null);
+	        this.pagination = this.convertValues(source["pagination"], null);
+	        this.sorts = this.convertValues(source["sorts"], Sort);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 

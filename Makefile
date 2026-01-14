@@ -1,4 +1,4 @@
-.PHONY: help build run clean test deps migrate db-clean frontend-install frontend-build frontend-dev wails-dev wails-build
+.PHONY: help build run clean test deps migrate migrate-up migrate-down migrate-status db-clean frontend-install frontend-build frontend-dev wails-dev wails-build
 
 # Default target
 help:
@@ -9,12 +9,15 @@ help:
 	@echo "  frontend-dev     - Run frontend dev server"
 	@echo "  wails-dev        - Run Wails in development mode (recommended)"
 	@echo "  wails-build      - Build Wails application for production"
-	@echo "  build            - Build the application"
-	@echo "  run              - Run the application"
+	@echo "  build            - Build the Wails application"
+	@echo "  run              - Run the Wails application in dev mode"
 	@echo "  test             - Run tests"
 	@echo "  clean            - Clean build artifacts"
 	@echo "  db-clean         - Remove database file"
-	@echo "  migrate          - Run database migrations"
+	@echo "  migrate          - Run all pending database migrations (up)"
+	@echo "  migrate-up       - Run all pending database migrations"
+	@echo "  migrate-down     - Rollback the last migration"
+	@echo "  migrate-status   - Show current migration status"
 
 # Download and install Go dependencies
 deps:
@@ -59,15 +62,11 @@ wails-build: deps frontend-build
 		exit 1; \
 	fi
 
-# Build the application
-build: deps
-	@echo "Building application..."
-	go build -o bin/plancraft cmd/server/main.go
+# Build the Wails application
+build: wails-build
 
-# Run the application
-run: build
-	@echo "Running application..."
-	./bin/plancraft
+# Run the Wails application in dev mode
+run: wails-dev
 
 # Run tests
 test:
@@ -90,21 +89,49 @@ db-clean:
 	rm -f data/plancraft.db-shm
 	rm -f data/plancraft.db-wal
 
-# Run database migrations (same as running the app, which auto-migrates)
-migrate: build
-	@echo "Running database migrations..."
-	./bin/plancraft
+# Database configuration
+DB_DSN ?= data/plancraft.db
+MIGRATE_CMD = migrate -path migrations -database "sqlite3://$(DB_DSN)"
 
-# Development mode - run with auto-reload (requires air)
-dev:
-	@echo "Starting development mode..."
-	@if command -v air > /dev/null; then \
-		air; \
+# Run all pending database migrations (up)
+migrate: migrate-up
+
+# Run all pending database migrations
+migrate-up:
+	@echo "Running database migrations..."
+	@mkdir -p data
+	@if command -v migrate > /dev/null; then \
+		$(MIGRATE_CMD) up; \
 	else \
-		echo "air not found. Install it with: go install github.com/air-verse/air@latest"; \
-		echo "Running without auto-reload..."; \
-		go run cmd/server/main.go; \
+		echo "❌ golang-migrate is not installed. Install it with:"; \
+		echo "   go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest"; \
+		exit 1; \
 	fi
+
+# Rollback the last migration
+migrate-down:
+	@echo "Rolling back last migration..."
+	@if command -v migrate > /dev/null; then \
+		$(MIGRATE_CMD) down 1; \
+	else \
+		echo "❌ golang-migrate is not installed. Install it with:"; \
+		echo "   go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest"; \
+		exit 1; \
+	fi
+
+# Show current migration status
+migrate-status:
+	@echo "Checking migration status..."
+	@if command -v migrate > /dev/null; then \
+		$(MIGRATE_CMD) version; \
+	else \
+		echo "❌ golang-migrate is not installed. Install it with:"; \
+		echo "   go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest"; \
+		exit 1; \
+	fi
+
+# Development mode - run Wails dev (alias for run)
+dev: wails-dev
 
 # Format code
 fmt:
