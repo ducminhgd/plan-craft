@@ -5,6 +5,8 @@ import ClientList from '../pages/clients/ClientList';
 import ClientForm from '../pages/clients/ClientForm';
 import ProjectList from '../pages/projects/ProjectList';
 import ProjectForm from '../pages/projects/ProjectForm';
+import HumanResourceList from '../pages/human-resources/HumanResourceList';
+import HumanResourceForm from '../pages/human-resources/HumanResourceForm';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +19,9 @@ export const router = createBrowserRouter([
       { path: 'clients/:id', element: <ClientForm /> },
       { path: 'projects', element: <ProjectList /> },
       { path: 'projects/new', element: <ProjectForm /> },
+      { path: 'human-resources', element: <HumanResourceList /> },
+      { path: 'human-resources/new', element: <HumanResourceForm /> },
+      { path: 'human-resources/:id', element: <HumanResourceForm /> },
     ],
   },
 ]);

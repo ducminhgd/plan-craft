@@ -6,8 +6,16 @@ export function CreateClient(arg1) {
   return window['go']['main']['App']['CreateClient'](arg1);
 }
 
+export function CreateHumanResource(arg1) {
+  return window['go']['main']['App']['CreateHumanResource'](arg1);
+}
+
 export function DeleteClient(arg1) {
   return window['go']['main']['App']['DeleteClient'](arg1);
+}
+
+export function DeleteHumanResource(arg1) {
+  return window['go']['main']['App']['DeleteHumanResource'](arg1);
 }
 
 export function GetClient(arg1) {
@@ -18,10 +26,22 @@ export function GetClients(arg1) {
   return window['go']['main']['App']['GetClients'](arg1);
 }
 
+export function GetHumanResource(arg1) {
+  return window['go']['main']['App']['GetHumanResource'](arg1);
+}
+
+export function GetHumanResources(arg1) {
+  return window['go']['main']['App']['GetHumanResources'](arg1);
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
+}
+
+export function UpdateHumanResource(arg1) {
+  return window['go']['main']['App']['UpdateHumanResource'](arg1);
 }

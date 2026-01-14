@@ -104,6 +104,9 @@ export default function MenuBar() {
             and cost estimation.
           </p>
           <p style={{ marginTop: '20px' }}>
+            Contact: <a href="mailto:giaduongducminh@gmail.com">giaduongducminh@gmail.com</a>
+          </p>
+          <p style={{ marginTop: '20px' }}>
             © 2026 Plan Craft. All rights reserved.
           </p>
         </div>

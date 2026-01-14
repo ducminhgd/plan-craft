@@ -4,12 +4,22 @@ import {entities} from '../models';
 
 export function CreateClient(arg1:entities.Client):Promise<entities.Client>;
 
+export function CreateHumanResource(arg1:entities.HumanResource):Promise<entities.HumanResource>;
+
 export function DeleteClient(arg1:number):Promise<void>;
+
+export function DeleteHumanResource(arg1:number):Promise<void>;
 
 export function GetClient(arg1:number):Promise<entities.Client>;
 
 export function GetClients(arg1:entities.ClientQueryParams):Promise<entities.ClientListResponse>;
 
+export function GetHumanResource(arg1:number):Promise<entities.HumanResource>;
+
+export function GetHumanResources(arg1:entities.HumanResourceQueryParams):Promise<entities.HumanResourceListResponse>;
+
 export function Greet(arg1:string):Promise<string>;
 
 export function UpdateClient(arg1:entities.Client):Promise<number>;
+
+export function UpdateHumanResource(arg1:entities.HumanResource):Promise<number>;

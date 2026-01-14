@@ -43,6 +43,7 @@ func InitializeDatabase() (*gorm.DB, error) {
 	// Auto-migrate entities
 	err = db.AutoMigrate(
 		&entities.Client{},
+		&entities.HumanResource{},
 		// Add other entities as they are implemented
 	)
 	if err != nil {

@@ -8,6 +8,7 @@ import {
   PlusOutlined,
   UnorderedListOutlined,
   PushpinOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -77,6 +78,23 @@ export default function Sidebar() {
         },
       ],
     },
+    {
+      key: 'human-resources',
+      icon: <UserOutlined />,
+      label: 'Human Resources',
+      children: [
+        {
+          key: '/human-resources',
+          icon: <UnorderedListOutlined />,
+          label: 'List',
+        },
+        {
+          key: '/human-resources/new',
+          icon: <PlusOutlined />,
+          label: 'Add New',
+        },
+      ],
+    },
   ];
 
   return (
@@ -95,7 +113,7 @@ export default function Sidebar() {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        defaultOpenKeys={['clients', 'projects']}
+        defaultOpenKeys={['clients', 'projects', 'human-resources']}
         items={menuItems}
         onClick={({ key }) => navigate(key)}
       />
