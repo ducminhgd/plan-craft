@@ -10,12 +10,32 @@ export function CreateHumanResource(arg1) {
   return window['go']['main']['App']['CreateHumanResource'](arg1);
 }
 
+export function CreateProject(arg1) {
+  return window['go']['main']['App']['CreateProject'](arg1);
+}
+
+export function CreateProjectResource(arg1) {
+  return window['go']['main']['App']['CreateProjectResource'](arg1);
+}
+
 export function DeleteClient(arg1) {
   return window['go']['main']['App']['DeleteClient'](arg1);
 }
 
 export function DeleteHumanResource(arg1) {
   return window['go']['main']['App']['DeleteHumanResource'](arg1);
+}
+
+export function DeleteProject(arg1) {
+  return window['go']['main']['App']['DeleteProject'](arg1);
+}
+
+export function DeleteProjectResource(arg1) {
+  return window['go']['main']['App']['DeleteProjectResource'](arg1);
+}
+
+export function GetByProjectAndResource(arg1, arg2) {
+  return window['go']['main']['App']['GetByProjectAndResource'](arg1, arg2);
 }
 
 export function GetClient(arg1) {
@@ -34,10 +54,34 @@ export function GetHumanResources(arg1) {
   return window['go']['main']['App']['GetHumanResources'](arg1);
 }
 
+export function GetProject(arg1) {
+  return window['go']['main']['App']['GetProject'](arg1);
+}
+
+export function GetProjectResource(arg1) {
+  return window['go']['main']['App']['GetProjectResource'](arg1);
+}
+
+export function GetProjectResources(arg1) {
+  return window['go']['main']['App']['GetProjectResources'](arg1);
+}
+
+export function GetProjects(arg1) {
+  return window['go']['main']['App']['GetProjects'](arg1);
+}
+
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
 }
 
 export function UpdateHumanResource(arg1) {
   return window['go']['main']['App']['UpdateHumanResource'](arg1);
+}
+
+export function UpdateProject(arg1) {
+  return window['go']['main']['App']['UpdateProject'](arg1);
+}
+
+export function UpdateProjectResource(arg1) {
+  return window['go']['main']['App']['UpdateProjectResource'](arg1);
 }
