@@ -41,6 +41,14 @@ func (a *App) startup(ctx context.Context) {
 	hrService := services.NewHumanResourceService(hrRepo)
 	hrHandler := handlers.NewHumanResourceHandler(ctx, hrService)
 
+	projectRepo := repositories.NewProjectRepository(db)
+	projectService := services.NewProjectService(projectRepo)
+	projectHandler := handlers.NewProjectHandler(ctx, projectService)
+
+	projectResourceRepo := repositories.NewProjectResourceRepository(db)
+	projectResourceService := services.NewProjectResourceService(projectResourceRepo)
+	projectResourceHandler := handlers.NewProjectResourceHandler(ctx, projectResourceService)
+
 	// Initialize handlers container with all handlers
-	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler)
+	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler, projectHandler, projectResourceHandler)
 }
