@@ -18,6 +18,7 @@ var (
 	ErrProjectResourceInvalidHumanResourceID = errors.New("project resource must have a valid human resource ID")
 	ErrProjectResourceInvalidStatus          = errors.New("project resource status must be 1 (inactive) or 2 (active)")
 	ErrProjectResourceInvalidAllocation      = errors.New("allocation percentage must be between 0 and 100")
+	ErrProjectResourceInvalidDates           = errors.New("project resource end date must be after start date")
 
 	ProjectResourceAllowedSortField = map[string]string{
 		"id":                "id",
@@ -38,11 +39,11 @@ type ProjectResource struct {
 	ID              uint       `gorm:"primary_key" json:"id"`
 	ProjectID       uint       `gorm:"not null;index;uniqueIndex:idx_project_human_resource" json:"project_id"`
 	HumanResourceID uint       `gorm:"not null;index;uniqueIndex:idx_project_human_resource" json:"human_resource_id"`
-	Role            string     `gorm:"" json:"role"`                    // Role in the project (e.g., "Developer", "Tech Lead", "QA")
-	Allocation      float64    `gorm:"default:100" json:"allocation"`   // Allocation percentage (0-100)
-	StartDate       *time.Time `gorm:"" json:"start_date"`              // When the resource starts on the project
-	EndDate         *time.Time `gorm:"" json:"end_date"`                // When the resource ends on the project
-	Notes           string     `gorm:"type:text" json:"notes"`          // Additional notes
+	Role            string     `gorm:"" json:"role"`                  // Role in the project (e.g., "Developer", "Tech Lead", "QA")
+	Allocation      float64    `gorm:"default:100" json:"allocation"` // Allocation percentage (0-100)
+	StartDate       *time.Time `gorm:"" json:"start_date"`            // When the resource starts on the project
+	EndDate         *time.Time `gorm:"" json:"end_date"`              // When the resource ends on the project
+	Notes           string     `gorm:"type:text" json:"notes"`        // Additional notes
 	Status          uint       `gorm:"not null;default:2" json:"status"`
 	CreatedAt       time.Time  `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt       time.Time  `gorm:"autoUpdateTime:milli" json:"updated_at"`
@@ -81,7 +82,7 @@ func (pr *ProjectResource) Validate() error {
 	// Validate dates
 	if pr.StartDate != nil && pr.EndDate != nil {
 		if pr.EndDate.Before(*pr.StartDate) {
-			return ErrProjectInvalidDates
+			return ErrProjectResourceInvalidDates
 		}
 	}
 
@@ -106,11 +107,6 @@ func (pr *ProjectResource) BeforeCreate(tx *gorm.DB) error {
 	// Set default status if not valid
 	if err := pr.validateStatus(); err != nil {
 		pr.Status = ProjectResourceStatusActive
-	}
-
-	// Set default allocation if not set
-	if pr.Allocation == 0 {
-		pr.Allocation = 100
 	}
 
 	return pr.Validate()
