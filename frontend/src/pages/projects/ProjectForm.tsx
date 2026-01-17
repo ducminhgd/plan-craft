@@ -25,7 +25,8 @@ export default function ProjectForm() {
     if (isEdit) {
       loadProject();
     } else {
-      // Set default status to Active (2) for new projects
+      // Reset form and set default status to Active (2) for new projects
+      form.resetFields();
       form.setFieldsValue({ status: 2 });
     }
   }, [id]);
@@ -151,10 +152,10 @@ export default function ProjectForm() {
                 if (!value || !startDate) {
                   return Promise.resolve();
                 }
-                if (value.isAfter(startDate)) {
+                if (value.isSame(startDate) || value.isAfter(startDate)) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error('End date must be after start date'));
+                return Promise.reject(new Error('End date must be greater than or equal to start date'));
               },
             }),
           ]}
