@@ -206,7 +206,7 @@ func TestProjectResourceValidate(t *testing.T) {
 				EndDate:         &pastDate,
 				Status:          ProjectResourceStatusActive,
 			},
-			wantError: ErrProjectInvalidDates,
+			wantError: ErrProjectResourceInvalidDates,
 		},
 		{
 			name: "Valid with only start date",
@@ -421,7 +421,7 @@ func TestProjectResourceBeforeCreate(t *testing.T) {
 		}
 		result := db.Create(&pr)
 		assert.Error(t, result.Error)
-		assert.Contains(t, result.Error.Error(), ErrProjectInvalidDates.Error())
+		assert.Contains(t, result.Error.Error(), ErrProjectResourceInvalidDates.Error())
 	})
 
 	t.Run("Valid with dates", func(t *testing.T) {
@@ -507,7 +507,7 @@ func TestProjectResourceBeforeUpdate(t *testing.T) {
 				p.StartDate = &now
 				p.EndDate = &pastDate
 			},
-			wantError: ErrProjectInvalidDates,
+			wantError: ErrProjectResourceInvalidDates,
 		},
 		{
 			name: "Update status to inactive",
