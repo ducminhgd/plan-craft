@@ -458,11 +458,7 @@ func TestClientUniqueEmail(t *testing.T) {
 		Email:  "contact@acme.com", // Same email
 		Status: ClientStatusActive,
 	}
-	result = db.Create(&client2)
-
-	// In production with proper database, this should fail due to unique constraint
-	// In memory SQLite might not enforce it, so we just document the expectation
-	// assert.Error(t, result.Error)
+	db.Create(&client2)
 }
 
 func TestClientCRUDOperations(t *testing.T) {
@@ -566,7 +562,7 @@ func BenchmarkClientValidate(b *testing.B) {
 
 func BenchmarkClientCreate(b *testing.B) {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&Client{})
+	db.AutoMigrate(&Client{}) //nolint:errcheck
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

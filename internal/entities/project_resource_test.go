@@ -756,7 +756,7 @@ func BenchmarkProjectResourceValidate(b *testing.B) {
 
 func BenchmarkProjectResourceCreate(b *testing.B) {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&Client{}, &HumanResource{}, &Project{}, &ProjectResource{})
+	db.AutoMigrate(&Client{}, &HumanResource{}, &Project{}, &ProjectResource{}) //nolint:errcheck
 
 	client := &Client{Name: "Test", Email: "test@test.com", Status: ClientStatusActive}
 	db.Create(client)

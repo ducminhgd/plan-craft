@@ -81,7 +81,7 @@ func TestHealthCheck(t *testing.T) {
 	if err := InitializeDatabase(); err != nil {
 		t.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer CloseDatabase()
+	defer CloseDatabase() //nolint:errcheck
 
 	// Test health check
 	err := HealthCheck()

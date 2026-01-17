@@ -519,7 +519,7 @@ func BenchmarkHRValidate(b *testing.B) {
 
 func BenchmarkHRCreate(b *testing.B) {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&HumanResource{})
+	db.AutoMigrate(&HumanResource{}) //nolint:errcheck
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

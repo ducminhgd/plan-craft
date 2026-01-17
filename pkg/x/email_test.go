@@ -214,6 +214,6 @@ func BenchmarkIsValidEmail(b *testing.B) {
 func BenchmarkValidateEmail(b *testing.B) {
 	email := "user@example.com"
 	for i := 0; i < b.N; i++ {
-		ValidateEmail(email)
+		ValidateEmail(email) //nolint:errcheck
 	}
 }
