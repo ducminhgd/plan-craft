@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { GetProjects, UpdateProject, GetClients } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
+import { formatDate } from '../../utils/date';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -161,12 +162,6 @@ export default function ProjectList() {
   const getClientName = (clientId: number) => {
     const client = clients.find(c => c.id === clientId);
     return client ? client.name : '-';
-  };
-
-  const formatDate = (date: any) => {
-    if (!date) return '-';
-    const d = new Date(date);
-    return d.toLocaleDateString();
   };
 
   const columns = [
