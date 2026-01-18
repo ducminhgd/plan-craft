@@ -32,6 +32,31 @@ This product has some core features:
    2. Cost breakdown by category
    3. The cost can be summed up to the milestone, and the project level.
    4. The costs can be filtered by categories, by resources, by milestones, by dates.
+7. The menu bar:
+   1. `File`:
+
+      ```
+      File
+      ├── Open file (Ctrl/Cmd+O)
+      ├── Save as (Ctrl/Cmd+Shift+S)
+      ├── ------------------------ (seperation line)
+      └── Exit (Ctrl/Cmd+Q)
+      ```
+
+      1. `File` > `Open file`: to open a project SQLite3 database file. The application will close the current project if there is any, and open the new project. By default, we don't point to any database file. When a database is opened, we will auto-save the project to that database file.
+      2. `File` > `Save as`: to save the current project to a new SQLite3 database file.
+      3. `File` > `Exit`: to close the application.
+   2. `Help`:
+
+      ```
+      Help
+      ├── Guides
+      ├── ------------------------ (seperation line)
+      └── About
+      ```
+
+      1. `Help` > `Guides`: to open the guides page in the browser.
+      2. `Help` > `About`: to show the about dialog.
 
 ## What end-users can do with Plan Craft
 

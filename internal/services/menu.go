@@ -8,10 +8,17 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-type MenuService struct{}
+type MenuService struct {
+	dbFileService *DatabaseFileService
+}
 
 func NewMenuService() *MenuService {
 	return &MenuService{}
+}
+
+// SetDatabaseFileService sets the database file service for menu actions
+func (m *MenuService) SetDatabaseFileService(dbFileService *DatabaseFileService) {
+	m.dbFileService = dbFileService
 }
 
 func (m *MenuService) BuildApplicationMenu(ctx context.Context) *menu.Menu {
@@ -19,8 +26,15 @@ func (m *MenuService) BuildApplicationMenu(ctx context.Context) *menu.Menu {
 
 	// File menu
 	fileMenu := appMenu.AddSubmenu("File")
-	fileMenu.AddText("Open", nil, func(_ *menu.CallbackData) {
-		// No action for now
+	fileMenu.AddText("Open file", keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
+		if m.dbFileService != nil {
+			m.dbFileService.OpenDatabase()
+		}
+	})
+	fileMenu.AddText("Save as", keys.Combo("s", keys.CmdOrCtrlKey, keys.ShiftKey), func(_ *menu.CallbackData) {
+		if m.dbFileService != nil {
+			m.dbFileService.SaveDatabaseAs()
+		}
 	})
 	fileMenu.AddSeparator()
 	fileMenu.AddText("Exit", keys.CmdOrCtrl("q"), func(_ *menu.CallbackData) {
@@ -30,7 +44,9 @@ func (m *MenuService) BuildApplicationMenu(ctx context.Context) *menu.Menu {
 	// Help menu
 	helpMenu := appMenu.AddSubmenu("Help")
 	helpMenu.AddText("Guides", nil, func(_ *menu.CallbackData) {
-		// No action for now
+		if m.dbFileService != nil {
+			m.dbFileService.OpenGuides()
+		}
 	})
 	helpMenu.AddSeparator()
 	helpMenu.AddText("About", nil, func(_ *menu.CallbackData) {

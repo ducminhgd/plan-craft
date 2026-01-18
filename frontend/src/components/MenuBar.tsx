@@ -1,13 +1,45 @@
-import { useState } from 'react';
-import { Menu, Modal } from 'antd';
+import { useState, useEffect } from 'react';
+import { Menu, Modal, message } from 'antd';
 import type { MenuProps } from 'antd';
-import { Quit } from '../../wailsjs/runtime/runtime';
+import { Quit, BrowserOpenURL } from '../../wailsjs/runtime/runtime';
+import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath } from '../../wailsjs/go/services/DatabaseFileService';
 import './MenuBar.css';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
+// Detect if running on macOS
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const modKey = isMac ? '⌘' : 'Ctrl';
+
 export default function MenuBar() {
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
+  const [currentDbPath, setCurrentDbPath] = useState<string>('');
+
+  // Fetch current database path on mount
+  useEffect(() => {
+    GetCurrentDatabasePath().then(setCurrentDbPath).catch(() => {});
+  }, []);
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const modPressed = isMac ? e.metaKey : e.ctrlKey;
+
+      if (modPressed && e.key === 'o') {
+        e.preventDefault();
+        handleOpenFile();
+      } else if (modPressed && e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        handleSaveAs();
+      } else if (modPressed && e.key === 'q') {
+        e.preventDefault();
+        handleExit();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleExit = () => {
     Modal.confirm({
@@ -21,12 +53,33 @@ export default function MenuBar() {
     });
   };
 
-  const handleOpen = () => {
-    // TODO: Implement directory opening functionality
-    Modal.info({
-      title: 'Coming Soon',
-      content: 'Directory opening functionality will be implemented in a future version.',
-    });
+  const handleOpenFile = async () => {
+    try {
+      const filePath = await OpenDatabase();
+      if (filePath) {
+        setCurrentDbPath(filePath);
+        message.success(`Opened database: ${filePath}`);
+        // Reload the page to reflect the new database
+        window.location.reload();
+      }
+    } catch (error) {
+      message.error(`Failed to open database: ${error}`);
+    }
+  };
+
+  const handleSaveAs = async () => {
+    try {
+      const filePath = await SaveDatabaseAs();
+      if (filePath) {
+        message.success(`Database saved to: ${filePath}`);
+      }
+    } catch (error) {
+      message.error(`Failed to save database: ${error}`);
+    }
+  };
+
+  const handleGuides = () => {
+    BrowserOpenURL('https://github.com/ducminhgd/plan-craft/wiki');
   };
 
   const handleAbout = () => {
@@ -36,20 +89,33 @@ export default function MenuBar() {
   const fileMenuItems: MenuItem[] = [
     {
       key: 'open',
-      label: 'Open',
-      onClick: handleOpen,
+      label: `Open file (${modKey}+O)`,
+      onClick: handleOpenFile,
+    },
+    {
+      key: 'save-as',
+      label: `Save as (${modKey}+Shift+S)`,
+      onClick: handleSaveAs,
     },
     {
       type: 'divider',
     },
     {
       key: 'exit',
-      label: 'Exit',
+      label: `Exit (${modKey}+Q)`,
       onClick: handleExit,
     },
   ];
 
   const helpMenuItems: MenuItem[] = [
+    {
+      key: 'guides',
+      label: 'Guides',
+      onClick: handleGuides,
+    },
+    {
+      type: 'divider',
+    },
     {
       key: 'about',
       label: 'About',
@@ -81,6 +147,11 @@ export default function MenuBar() {
             borderBottom: '1px solid #f0f0f0',
           }}
         />
+        {currentDbPath && (
+          <span className="current-db-path" title={currentDbPath}>
+            {currentDbPath.split(/[/\\]/).pop()}
+          </span>
+        )}
       </div>
 
       <Modal

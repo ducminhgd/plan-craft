@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/ducminhgd/plan-craft/config"
 	"github.com/ducminhgd/plan-craft/internal/handlers"
 	"github.com/ducminhgd/plan-craft/internal/infrastructures"
 	"github.com/ducminhgd/plan-craft/internal/repositories"
@@ -23,7 +24,7 @@ func NewApp() *App {
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
-func (a *App) startup(ctx context.Context) {
+func (a *App) startup(ctx context.Context, dbFileService *services.DatabaseFileService) {
 	a.ctx = ctx
 
 	// Initialize database
@@ -31,6 +32,9 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	// Setup the database file service with context and database
+	services.SetupDatabaseFileService(dbFileService, ctx, db, config.Cfg.DB.DSN)
 
 	// Wire dependencies: repository → service → handler
 	clientRepo := repositories.NewClientRepository(db)
