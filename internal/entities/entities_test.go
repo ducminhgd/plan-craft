@@ -1,6 +1,232 @@
 package entities
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
+
+func TestWeekdayArrayValue(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   WeekdayArray
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Empty array",
+			input:   WeekdayArray{},
+			want:    "[]",
+			wantErr: false,
+		},
+		{
+			name:    "Nil array",
+			input:   nil,
+			want:    "[]",
+			wantErr: false,
+		},
+		{
+			name:    "Single day",
+			input:   WeekdayArray{time.Monday},
+			want:    "[1]",
+			wantErr: false,
+		},
+		{
+			name:    "Multiple days",
+			input:   WeekdayArray{time.Monday, time.Tuesday, time.Wednesday},
+			want:    "[1,2,3]",
+			wantErr: false,
+		},
+		{
+			name:    "Full work week",
+			input:   WeekdayArray{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday},
+			want:    "[1,2,3,4,5]",
+			wantErr: false,
+		},
+		{
+			name:    "Weekend",
+			input:   WeekdayArray{time.Saturday, time.Sunday},
+			want:    "[6,0]",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.input.Value()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WeekdayArray.Value() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("WeekdayArray.Value() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWeekdayArrayScan(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   interface{}
+		want    WeekdayArray
+		wantErr bool
+	}{
+		{
+			name:    "Nil value",
+			input:   nil,
+			want:    WeekdayArray{},
+			wantErr: false,
+		},
+		{
+			name:    "Empty string",
+			input:   "",
+			want:    WeekdayArray{},
+			wantErr: false,
+		},
+		{
+			name:    "Empty JSON array string",
+			input:   "[]",
+			want:    WeekdayArray{},
+			wantErr: false,
+		},
+		{
+			name:    "Empty JSON array bytes",
+			input:   []byte("[]"),
+			want:    WeekdayArray{},
+			wantErr: false,
+		},
+		{
+			name:    "Single day string",
+			input:   "[1]",
+			want:    WeekdayArray{time.Monday},
+			wantErr: false,
+		},
+		{
+			name:    "Multiple days string",
+			input:   "[1,2,3]",
+			want:    WeekdayArray{time.Monday, time.Tuesday, time.Wednesday},
+			wantErr: false,
+		},
+		{
+			name:    "Full work week bytes",
+			input:   []byte("[1,2,3,4,5]"),
+			want:    WeekdayArray{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday},
+			wantErr: false,
+		},
+		{
+			name:    "Weekend",
+			input:   "[6,0]",
+			want:    WeekdayArray{time.Saturday, time.Sunday},
+			wantErr: false,
+		},
+		{
+			name:    "Invalid type",
+			input:   123,
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "Invalid JSON",
+			input:   "invalid",
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var w WeekdayArray
+			err := w.Scan(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WeekdayArray.Scan() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if len(w) != len(tt.want) {
+					t.Errorf("WeekdayArray.Scan() length = %d, want %d", len(w), len(tt.want))
+					return
+				}
+				for i, day := range w {
+					if day != tt.want[i] {
+						t.Errorf("WeekdayArray.Scan()[%d] = %v, want %v", i, day, tt.want[i])
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestWeekdayArrayRoundTrip(t *testing.T) {
+	tests := []struct {
+		name  string
+		input WeekdayArray
+	}{
+		{
+			name:  "Empty array",
+			input: WeekdayArray{},
+		},
+		{
+			name:  "Single day",
+			input: WeekdayArray{time.Monday},
+		},
+		{
+			name:  "Full work week",
+			input: WeekdayArray{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday},
+		},
+		{
+			name:  "All days",
+			input: WeekdayArray{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Convert to database format
+			val, err := tt.input.Value()
+			if err != nil {
+				t.Errorf("WeekdayArray.Value() error = %v", err)
+				return
+			}
+
+			// Convert back from database format
+			var result WeekdayArray
+			err = result.Scan(val)
+			if err != nil {
+				t.Errorf("WeekdayArray.Scan() error = %v", err)
+				return
+			}
+
+			// Compare
+			if len(result) != len(tt.input) {
+				t.Errorf("Round trip length = %d, want %d", len(result), len(tt.input))
+				return
+			}
+			for i, day := range result {
+				if day != tt.input[i] {
+					t.Errorf("Round trip[%d] = %v, want %v", i, day, tt.input[i])
+				}
+			}
+		})
+	}
+}
+
+func TestDefaultWorkingDays(t *testing.T) {
+	days := DefaultWorkingDays()
+
+	// Should have 5 days
+	if len(days) != 5 {
+		t.Errorf("DefaultWorkingDays() length = %d, want 5", len(days))
+		return
+	}
+
+	// Should be Monday through Friday
+	expected := []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday}
+	for i, day := range days {
+		if day != expected[i] {
+			t.Errorf("DefaultWorkingDays()[%d] = %v, want %v", i, day, expected[i])
+		}
+	}
+}
 
 func TestIsValidProjectType(t *testing.T) {
 	tests := []struct {

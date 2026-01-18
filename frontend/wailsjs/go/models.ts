@@ -392,6 +392,11 @@ export namespace entities {
 	    created_at: any;
 	    // Go type: time
 	    updated_at: any;
+	    hours_per_day: number;
+	    days_per_week: number;
+	    working_days_per_week: number[];
+	    timezone: string;
+	    currency: string;
 	    client?: Client;
 	    project_resources?: ProjectResource[];
 	
@@ -410,6 +415,11 @@ export namespace entities {
 	        this.status = source["status"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.hours_per_day = source["hours_per_day"];
+	        this.days_per_week = source["days_per_week"];
+	        this.working_days_per_week = source["working_days_per_week"];
+	        this.timezone = source["timezone"];
+	        this.currency = source["currency"];
 	        this.client = this.convertValues(source["client"], Client);
 	        this.project_resources = this.convertValues(source["project_resources"], ProjectResource);
 	    }
