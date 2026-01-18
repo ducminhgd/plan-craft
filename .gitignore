@@ -121,3 +121,4 @@ logs/
 /tmp/
 data/
 plan-craft
+node_modules/

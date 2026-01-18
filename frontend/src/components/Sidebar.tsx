@@ -9,6 +9,7 @@ import {
   UnorderedListOutlined,
   PushpinOutlined,
   UserOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -47,7 +48,7 @@ export default function Sidebar() {
     {
       key: 'clients',
       icon: <TeamOutlined />,
-      label: 'Client Management',
+      label: 'Client',
       children: [
         {
           key: '/clients',
@@ -62,9 +63,26 @@ export default function Sidebar() {
       ],
     },
     {
+      key: 'human-resources',
+      icon: <UserOutlined />,
+      label: 'Human Resource',
+      children: [
+        {
+          key: '/human-resources',
+          icon: <UnorderedListOutlined />,
+          label: 'List',
+        },
+        {
+          key: '/human-resources/new',
+          icon: <PlusOutlined />,
+          label: 'Add New',
+        },
+      ],
+    },
+    {
       key: 'projects',
       icon: <ProjectOutlined />,
-      label: 'Project Management',
+      label: 'Project',
       children: [
         {
           key: '/projects',
@@ -79,17 +97,17 @@ export default function Sidebar() {
       ],
     },
     {
-      key: 'human-resources',
-      icon: <UserOutlined />,
-      label: 'Human Resources',
+      key: 'resource-allocations',
+      icon: <ScheduleOutlined />,
+      label: 'Project Allocation',
       children: [
         {
-          key: '/human-resources',
+          key: '/resource-allocations',
           icon: <UnorderedListOutlined />,
           label: 'List',
         },
         {
-          key: '/human-resources/new',
+          key: '/resource-allocations/new',
           icon: <PlusOutlined />,
           label: 'Add New',
         },
@@ -113,9 +131,10 @@ export default function Sidebar() {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        defaultOpenKeys={['clients', 'projects', 'human-resources']}
+        defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations']}
         items={menuItems}
         onClick={({ key }) => navigate(key)}
+        style={{ textAlign: 'left' }}
       />
       <div style={{ position: 'absolute', bottom: 16, left: 16 }}>
         <PushpinOutlined

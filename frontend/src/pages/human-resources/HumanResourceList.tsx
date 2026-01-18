@@ -127,6 +127,11 @@ export default function HumanResourceList() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      render: (name: string, record: entities.HumanResource) => (
+        <a onClick={() => navigate(`/human-resources/${record.id}`)} style={{ cursor: 'pointer' }}>
+          {name}
+        </a>
+      ),
     },
     {
       title: 'Title',

@@ -4,8 +4,11 @@ import (
 	"context"
 	"embed"
 
+	"github.com/ducminhgd/plan-craft/config"
+	"github.com/ducminhgd/plan-craft/internal"
 	"github.com/ducminhgd/plan-craft/internal/services"
 	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -15,6 +18,11 @@ import (
 var assets embed.FS
 
 func main() {
+	// Ensure log directory exists
+	if err := config.EnsureLogDirectory(config.Cfg.LogPath); err != nil {
+		println("Warning: Failed to create log directory:", err.Error())
+	}
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -26,9 +34,10 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "Plan Craft",
-		Width:  1024,
-		Height: 768,
+		Title:     "Plan Craft",
+		MinWidth:  1024,
+		MinHeight: 768,
+		Frameless: false,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -41,6 +50,9 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		Logger:             logger.NewFileLogger(config.Cfg.LogPath),
+		LogLevel:           internal.ConvertWailsLogLevel(config.Cfg.LogLevel),
+		LogLevelProduction: logger.ERROR,
 	})
 
 	if err != nil {

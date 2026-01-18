@@ -700,6 +700,7 @@ func TestProjectResourceAllowedSortFields(t *testing.T) {
 		"human_resource_id": "human_resource_id",
 		"role":              "role",
 		"allocation":        "allocation",
+		"cost":              "cost",
 		"start_date":        "start_date",
 		"end_date":          "end_date",
 		"status":            "status",

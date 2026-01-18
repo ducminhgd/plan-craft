@@ -105,6 +105,12 @@ func (r *ProjectResourceRepository) GetMany(ctx context.Context, qParams *entiti
 	if qParams.Allocation_Lte != nil {
 		q = q.Where("allocation <= @Allocation_Lte", sql.Named("Allocation_Lte", *qParams.Allocation_Lte))
 	}
+	if qParams.Cost_Gte != nil {
+		q = q.Where("cost >= @Cost_Gte", sql.Named("Cost_Gte", *qParams.Cost_Gte))
+	}
+	if qParams.Cost_Lte != nil {
+		q = q.Where("cost <= @Cost_Lte", sql.Named("Cost_Lte", *qParams.Cost_Lte))
+	}
 	if qParams.Status != entities.ProjectResourceStatusUnknown {
 		q = q.Where("status = @Status", sql.Named("Status", qParams.Status))
 	}
