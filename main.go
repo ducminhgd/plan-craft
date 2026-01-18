@@ -18,7 +18,11 @@ import (
 var assets embed.FS
 
 func main() {
-	cfg := config.Load()
+	// Ensure log directory exists
+	if err := config.EnsureLogDirectory(cfg.LogPath); err != nil {
+		println("Warning: Failed to create log directory:", err.Error())
+	}
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -46,8 +50,8 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
-		Logger:             logger.NewFileLogger(cfg.LogPath),
-		LogLevel:           internal.ConvertWailsLogLevel(cfg.LogLevel),
+		Logger:             logger.NewFileLogger(config.Cfg.LogPath),
+		LogLevel:           internal.ConvertWailsLogLevel(config.Cfg.LogLevel),
 		LogLevelProduction: logger.ERROR,
 	})
 
