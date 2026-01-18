@@ -19,7 +19,7 @@ var assets embed.FS
 
 func main() {
 	// Ensure log directory exists
-	if err := config.EnsureLogDirectory(cfg.LogPath); err != nil {
+	if err := config.EnsureLogDirectory(config.Cfg.LogPath); err != nil {
 		println("Warning: Failed to create log directory:", err.Error())
 	}
 
