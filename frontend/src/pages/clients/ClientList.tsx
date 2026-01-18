@@ -131,6 +131,11 @@ export default function ClientList() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      render: (name: string, record: entities.Client) => (
+        <a onClick={() => navigate(`/clients/${record.id}`)} style={{ cursor: 'pointer' }}>
+          {name}
+        </a>
+      ),
     },
     {
       title: 'Email',

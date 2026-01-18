@@ -326,6 +326,7 @@ export namespace entities {
 	    human_resource_id: number;
 	    role: string;
 	    allocation: number;
+	    cost: number;
 	    // Go type: time
 	    start_date?: any;
 	    // Go type: time
@@ -350,6 +351,7 @@ export namespace entities {
 	        this.human_resource_id = source["human_resource_id"];
 	        this.role = source["role"];
 	        this.allocation = source["allocation"];
+	        this.cost = source["cost"];
 	        this.start_date = this.convertValues(source["start_date"], null);
 	        this.end_date = this.convertValues(source["end_date"], null);
 	        this.notes = source["notes"];
@@ -590,6 +592,8 @@ export namespace entities {
 	    role_like: string;
 	    allocation_gte?: number;
 	    allocation_lte?: number;
+	    cost_gte?: number;
+	    cost_lte?: number;
 	    status: number;
 	    status_in: number[];
 	    // Go type: time
@@ -627,6 +631,8 @@ export namespace entities {
 	        this.role_like = source["role_like"];
 	        this.allocation_gte = source["allocation_gte"];
 	        this.allocation_lte = source["allocation_lte"];
+	        this.cost_gte = source["cost_gte"];
+	        this.cost_lte = source["cost_lte"];
 	        this.status = source["status"];
 	        this.status_in = source["status_in"];
 	        this.start_date_gte = this.convertValues(source["start_date_gte"], null);

@@ -7,6 +7,7 @@ import (
 
 	"github.com/ducminhgd/plan-craft/config"
 	gormslog "github.com/onrik/gorm-slog"
+	wlr "github.com/wailsapp/wails/v2/pkg/logger"
 )
 
 var (
@@ -35,4 +36,19 @@ func NewGORMLogger(cfg *config.Config) *gormslog.Logger {
 		AddSource: true,
 		Level:     ConvertSlogLevel(cfg.LogLevel),
 	})))
+}
+
+func ConvertWailsLogLevel(l string) wlr.LogLevel {
+	switch strings.ToUpper(l) {
+	case "DEBUG":
+		return wlr.DEBUG
+	case "INFO":
+		return wlr.INFO
+	case "WARN":
+		return wlr.WARNING
+	case "ERROR":
+		return wlr.ERROR
+	default:
+		return wlr.DEBUG
+	}
 }

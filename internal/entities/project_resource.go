@@ -26,6 +26,7 @@ var (
 		"human_resource_id": "human_resource_id",
 		"role":              "role",
 		"allocation":        "allocation",
+		"cost":              "cost",
 		"start_date":        "start_date",
 		"end_date":          "end_date",
 		"status":            "status",
@@ -41,6 +42,7 @@ type ProjectResource struct {
 	HumanResourceID uint       `gorm:"not null;index;uniqueIndex:idx_project_human_resource" json:"human_resource_id"`
 	Role            string     `gorm:"" json:"role"`                  // Role in the project (e.g., "Developer", "Tech Lead", "QA")
 	Allocation      float64    `gorm:"default:100" json:"allocation"` // Allocation percentage (0-100)
+	Cost            float64    `gorm:"default:0" json:"cost"`         // Cost for this resource allocation
 	StartDate       *time.Time `gorm:"" json:"start_date"`            // When the resource starts on the project
 	EndDate         *time.Time `gorm:"" json:"end_date"`              // When the resource ends on the project
 	Notes           string     `gorm:"type:text" json:"notes"`        // Additional notes
@@ -127,6 +129,8 @@ type ProjectResourceQueryParams struct {
 	Role_Like          string     `json:"role_like"`
 	Allocation_Gte     *float64   `json:"allocation_gte"`
 	Allocation_Lte     *float64   `json:"allocation_lte"`
+	Cost_Gte           *float64   `json:"cost_gte"`
+	Cost_Lte           *float64   `json:"cost_lte"`
 	Status             uint       `json:"status"`
 	Status_In          []uint     `json:"status_in"`
 	StartDate_Gte      *time.Time `json:"start_date_gte"`

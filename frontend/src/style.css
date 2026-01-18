@@ -8,8 +8,8 @@ body {
     margin: 0;
     color: white;
     font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+        sans-serif;
 }
 
 @font-face {
@@ -17,10 +17,27 @@ body {
     font-style: normal;
     font-weight: 400;
     src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+        url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
 }
 
 #app {
     height: 100vh;
     text-align: center;
+}
+
+/* Form Styles */
+.ant-form-item-label>label {
+    font-weight: bold;
+}
+
+.ant-form-item-control-input {
+    max-width: 80%;
+}
+
+.ant-form-item-control-input-content {
+    text-align: left;
+}
+
+.ant-input-number-group-wrapper {
+    width: 100%;
 }

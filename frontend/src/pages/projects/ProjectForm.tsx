@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Typography, message, Space, Select, DatePicker } from 'antd';
+import { Form, Input, Button, Typography, message, Space, Select, DatePicker, InputNumber, Checkbox, Divider } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { GetProject, CreateProject, UpdateProject, GetClients } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
@@ -7,6 +7,35 @@ import { DATE_FORMAT, parseDate, toISOString } from '../../utils/date';
 
 const { Title } = Typography;
 const { TextArea } = Input;
+
+const WEEKDAYS = [
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+  { value: 0, label: 'Sunday' },
+];
+
+const COMMON_CURRENCIES = [
+  'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AUD', 'CAD', 'CHF', 'HKD', 'SGD', 'VND',
+];
+
+const COMMON_TIMEZONES = [
+  'UTC',
+  'America/New_York',
+  'America/Los_Angeles',
+  'America/Chicago',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Asia/Singapore',
+  'Asia/Ho_Chi_Minh',
+  'Australia/Sydney',
+];
 
 export default function ProjectForm() {
   const navigate = useNavigate();
@@ -25,9 +54,14 @@ export default function ProjectForm() {
     if (isEdit) {
       loadProject();
     } else {
-      // Reset form and set default status to Active (2) for new projects
+      // Reset form and set defaults for new projects
       form.resetFields();
-      form.setFieldsValue({ status: 2 });
+      form.setFieldsValue({
+        status: 2,
+        hours_per_day: 8,
+        days_per_week: 5,
+        working_days_per_week: [1, 2, 3, 4, 5], // Monday to Friday
+      });
     }
   }, [id]);
 
@@ -162,6 +196,79 @@ export default function ProjectForm() {
         >
           <DatePicker style={{ width: '100%' }} placeholder="Select end date" format={DATE_FORMAT} />
         </Form.Item>
+
+        <Divider>Configuration</Divider>
+
+        <Form.Item
+          label="Hours per Day"
+          name="hours_per_day"
+          rules={[
+            { type: 'number', min: 1, max: 24, message: 'Hours per day must be between 1 and 24' }
+          ]}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            placeholder="Enter hours per day (default: 8)"
+            min={1}
+            max={24}
+            precision={0}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Days per Week"
+          name="days_per_week"
+          rules={[
+            { type: 'number', min: 1, max: 7, message: 'Days per week must be between 1 and 7' }
+          ]}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            placeholder="Enter days per week (default: 5)"
+            min={1}
+            max={7}
+            precision={0}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Working Days"
+          name="working_days_per_week"
+        >
+          <Checkbox.Group options={WEEKDAYS} />
+        </Form.Item>
+
+        <Form.Item
+          label="Timezone"
+          name="timezone"
+        >
+          <Select
+            placeholder="Select timezone"
+            allowClear
+            showSearch
+          >
+            {COMMON_TIMEZONES.map(tz => (
+              <Select.Option key={tz} value={tz}>{tz}</Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="Currency"
+          name="currency"
+        >
+          <Select
+            placeholder="Select currency"
+            allowClear
+            showSearch
+          >
+            {COMMON_CURRENCIES.map(curr => (
+              <Select.Option key={curr} value={curr}>{curr}</Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Divider />
 
         <Form.Item
           label="Status"
