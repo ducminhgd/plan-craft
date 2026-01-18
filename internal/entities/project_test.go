@@ -266,6 +266,56 @@ func TestProjectValidate(t *testing.T) {
 			},
 			wantError: nil,
 		},
+		{
+			name: "Valid working days - all days",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday},
+			},
+			wantError: nil,
+		},
+		{
+			name: "Invalid working days - duplicate",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Monday, time.Monday, time.Tuesday},
+			},
+			wantError: ErrProjectDuplicateWorkingDays,
+		},
+		{
+			name: "Invalid working days - value out of range",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Weekday(7)},
+			},
+			wantError: ErrProjectInvalidWorkingDays,
+		},
+		{
+			name: "Invalid working days - negative value",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Weekday(-1)},
+			},
+			wantError: ErrProjectInvalidWorkingDays,
+		},
+		{
+			name: "Invalid working days - exceeds 7 days",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday, time.Sunday},
+			},
+			wantError: ErrProjectWorkingDaysExceedsWeek,
+		},
 	}
 
 	for _, tt := range tests {
@@ -553,12 +603,10 @@ func TestProjectBeforeCreateDefaultConfiguration(t *testing.T) {
 	result := db.Create(&project)
 	assert.NoError(t, result.Error)
 
-	// Verify default configuration values were set
-	assert.Equal(t, DefaultProjectHoursPerDay, project.HoursPerDay)
-	assert.Equal(t, DefaultProjectDaysPerWeek, project.DaysPerWeek)
+	// Verify default working days were set by BeforeCreate hook
 	assert.Equal(t, DefaultWorkingDays(), project.WorkingDaysPerWeek)
 
-	// Verify from database
+	// Verify from database (HoursPerDay and DaysPerWeek use GORM defaults)
 	var retrieved Project
 	db.First(&retrieved, project.ID)
 	assert.Equal(t, DefaultProjectHoursPerDay, retrieved.HoursPerDay)
