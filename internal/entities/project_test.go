@@ -191,6 +191,131 @@ func TestProjectValidate(t *testing.T) {
 			},
 			wantError: nil,
 		},
+		{
+			name: "Valid with configuration fields",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				HoursPerDay:        6,
+				DaysPerWeek:        4,
+				WorkingDaysPerWeek: WeekdayArray{time.Monday, time.Tuesday, time.Wednesday, time.Thursday},
+				Timezone:           "Asia/Ho_Chi_Minh",
+				Currency:           "VND",
+			},
+			wantError: nil,
+		},
+		{
+			name: "Invalid hours per day - too low",
+			project: Project{
+				Name:        "Project Alpha",
+				ClientID:    1,
+				Status:      ProjectStatusActive,
+				HoursPerDay: 0, // 0 is allowed (uses default)
+			},
+			wantError: nil,
+		},
+		{
+			name: "Invalid hours per day - negative",
+			project: Project{
+				Name:        "Project Alpha",
+				ClientID:    1,
+				Status:      ProjectStatusActive,
+				HoursPerDay: -1,
+			},
+			wantError: ErrProjectInvalidHoursPerDay,
+		},
+		{
+			name: "Invalid hours per day - too high",
+			project: Project{
+				Name:        "Project Alpha",
+				ClientID:    1,
+				Status:      ProjectStatusActive,
+				HoursPerDay: 25,
+			},
+			wantError: ErrProjectInvalidHoursPerDay,
+		},
+		{
+			name: "Invalid days per week - too high",
+			project: Project{
+				Name:        "Project Alpha",
+				ClientID:    1,
+				Status:      ProjectStatusActive,
+				DaysPerWeek: 8,
+			},
+			wantError: ErrProjectInvalidDaysPerWeek,
+		},
+		{
+			name: "Invalid days per week - negative",
+			project: Project{
+				Name:        "Project Alpha",
+				ClientID:    1,
+				Status:      ProjectStatusActive,
+				DaysPerWeek: -1,
+			},
+			wantError: ErrProjectInvalidDaysPerWeek,
+		},
+		{
+			name: "Valid with timezone and currency whitespace trimmed",
+			project: Project{
+				Name:     "Project Alpha",
+				ClientID: 1,
+				Status:   ProjectStatusActive,
+				Timezone: "  UTC  ",
+				Currency: "  USD  ",
+			},
+			wantError: nil,
+		},
+		{
+			name: "Valid working days - all days",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday},
+			},
+			wantError: nil,
+		},
+		{
+			name: "Invalid working days - duplicate",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Monday, time.Monday, time.Tuesday},
+			},
+			wantError: ErrProjectDuplicateWorkingDays,
+		},
+		{
+			name: "Invalid working days - value out of range",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Weekday(7)},
+			},
+			wantError: ErrProjectInvalidWorkingDays,
+		},
+		{
+			name: "Invalid working days - negative value",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Weekday(-1)},
+			},
+			wantError: ErrProjectInvalidWorkingDays,
+		},
+		{
+			name: "Invalid working days - exceeds 7 days",
+			project: Project{
+				Name:               "Project Alpha",
+				ClientID:           1,
+				Status:             ProjectStatusActive,
+				WorkingDaysPerWeek: WeekdayArray{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday, time.Sunday},
+			},
+			wantError: ErrProjectWorkingDaysExceedsWeek,
+		},
 	}
 
 	for _, tt := range tests {
@@ -213,6 +338,8 @@ func TestProjectValidateTrimsWhitespace(t *testing.T) {
 		Description: "  A test project  ",
 		ClientID:    1,
 		Status:      ProjectStatusActive,
+		Timezone:    "  UTC  ",
+		Currency:    "  USD  ",
 	}
 
 	err := project.Validate()
@@ -221,6 +348,68 @@ func TestProjectValidateTrimsWhitespace(t *testing.T) {
 	// Verify all fields were trimmed
 	assert.Equal(t, "Project Alpha", project.Name)
 	assert.Equal(t, "A test project", project.Description)
+	assert.Equal(t, "UTC", project.Timezone)
+	assert.Equal(t, "USD", project.Currency)
+}
+
+func TestProjectGetHoursPerDay(t *testing.T) {
+	tests := []struct {
+		name        string
+		hoursPerDay int
+		want        int
+	}{
+		{"Returns default when zero", 0, DefaultProjectHoursPerDay},
+		{"Returns custom value when set", 6, 6},
+		{"Returns custom value 10", 10, 10},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			project := Project{HoursPerDay: tt.hoursPerDay}
+			assert.Equal(t, tt.want, project.GetHoursPerDay())
+		})
+	}
+}
+
+func TestProjectGetDaysPerWeek(t *testing.T) {
+	tests := []struct {
+		name        string
+		daysPerWeek int
+		want        int
+	}{
+		{"Returns default when zero", 0, DefaultProjectDaysPerWeek},
+		{"Returns custom value when set", 4, 4},
+		{"Returns custom value 7", 7, 7},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			project := Project{DaysPerWeek: tt.daysPerWeek}
+			assert.Equal(t, tt.want, project.GetDaysPerWeek())
+		})
+	}
+}
+
+func TestProjectGetWorkingDaysPerWeek(t *testing.T) {
+	customDays := WeekdayArray{time.Monday, time.Tuesday, time.Wednesday}
+	defaultDays := DefaultWorkingDays()
+
+	tests := []struct {
+		name               string
+		workingDaysPerWeek WeekdayArray
+		want               WeekdayArray
+	}{
+		{"Returns default when nil", nil, defaultDays},
+		{"Returns default when empty", WeekdayArray{}, defaultDays},
+		{"Returns custom value when set", customDays, customDays},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			project := Project{WorkingDaysPerWeek: tt.workingDaysPerWeek}
+			assert.Equal(t, tt.want, project.GetWorkingDaysPerWeek())
+		})
+	}
 }
 
 func setupProjectTestDB(t *testing.T) *gorm.DB {
@@ -339,6 +528,40 @@ func TestProjectBeforeCreate(t *testing.T) {
 			},
 			wantError: nil,
 		},
+		{
+			name: "Valid with custom configuration",
+			project: Project{
+				Name:               "Project Theta",
+				ClientID:           client.ID,
+				Status:             ProjectStatusActive,
+				HoursPerDay:        6,
+				DaysPerWeek:        4,
+				WorkingDaysPerWeek: WeekdayArray{time.Monday, time.Tuesday, time.Wednesday, time.Thursday},
+				Timezone:           "Asia/Ho_Chi_Minh",
+				Currency:           "VND",
+			},
+			wantError: nil,
+		},
+		{
+			name: "Validation fails - invalid hours per day",
+			project: Project{
+				Name:        "Project Iota",
+				ClientID:    client.ID,
+				Status:      ProjectStatusActive,
+				HoursPerDay: 25,
+			},
+			wantError: ErrProjectInvalidHoursPerDay,
+		},
+		{
+			name: "Validation fails - invalid days per week",
+			project: Project{
+				Name:        "Project Kappa",
+				ClientID:    client.ID,
+				Status:      ProjectStatusActive,
+				DaysPerWeek: 8,
+			},
+			wantError: ErrProjectInvalidDaysPerWeek,
+		},
 	}
 
 	for _, tt := range tests {
@@ -365,6 +588,30 @@ func TestProjectBeforeCreate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestProjectBeforeCreateDefaultConfiguration(t *testing.T) {
+	db := setupProjectTestDB(t)
+	client := createTestClient(t, db)
+
+	// Create a project without specifying configuration values
+	project := Project{
+		Name:     "Project with defaults",
+		ClientID: client.ID,
+		Status:   ProjectStatusActive,
+	}
+	result := db.Create(&project)
+	assert.NoError(t, result.Error)
+
+	// Verify default working days were set by BeforeCreate hook
+	assert.Equal(t, DefaultWorkingDays(), project.WorkingDaysPerWeek)
+
+	// Verify from database (HoursPerDay and DaysPerWeek use GORM defaults)
+	var retrieved Project
+	db.First(&retrieved, project.ID)
+	assert.Equal(t, DefaultProjectHoursPerDay, retrieved.HoursPerDay)
+	assert.Equal(t, DefaultProjectDaysPerWeek, retrieved.DaysPerWeek)
+	assert.Equal(t, DefaultWorkingDays(), retrieved.WorkingDaysPerWeek)
 }
 
 func TestProjectBeforeUpdate(t *testing.T) {

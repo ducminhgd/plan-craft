@@ -1,10 +1,78 @@
 package entities
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
+
+// WeekdayArray is a custom type for storing []time.Weekday as JSON in SQLite
+type WeekdayArray []time.Weekday
+
+// Value implements the driver.Valuer interface for database storage
+func (w WeekdayArray) Value() (driver.Value, error) {
+	if w == nil {
+		return "[]", nil
+	}
+	// Convert to int array for storage
+	intArray := make([]int, len(w))
+	for i, day := range w {
+		intArray[i] = int(day)
+	}
+	b, err := json.Marshal(intArray)
+	if err != nil {
+		return nil, err
+	}
+	return string(b), nil
+}
+
+// Scan implements the sql.Scanner interface for database retrieval
+func (w *WeekdayArray) Scan(value interface{}) error {
+	if value == nil {
+		*w = WeekdayArray{}
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("cannot scan type %T into WeekdayArray", value)
+	}
+
+	if len(bytes) == 0 {
+		*w = WeekdayArray{}
+		return nil
+	}
+
+	var intArray []int
+	if err := json.Unmarshal(bytes, &intArray); err != nil {
+		return err
+	}
+
+	*w = make(WeekdayArray, len(intArray))
+	for i, day := range intArray {
+		(*w)[i] = time.Weekday(day)
+	}
+	return nil
+}
+
+// DefaultWorkingDays returns the default working days (Monday to Friday)
+func DefaultWorkingDays() WeekdayArray {
+	return WeekdayArray{
+		time.Monday,
+		time.Tuesday,
+		time.Wednesday,
+		time.Thursday,
+		time.Friday,
+	}
+}
 
 // Pagination defines pagination parameters for queries
 type Pagination struct {

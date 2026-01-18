@@ -9,16 +9,26 @@ import (
 )
 
 const (
+	DefaultProjectHoursPerDay = 8
+	DefaultProjectDaysPerWeek = 5
+)
+
+const (
 	ProjectStatusUnknown  = 0
 	ProjectStatusInactive = 1
 	ProjectStatusActive   = 2
 )
 
 var (
-	ErrProjectNameRequired    = errors.New("project name is required")
-	ErrProjectInvalidStatus   = errors.New("project status must be 1 (inactive) or 2 (active)")
-	ErrProjectInvalidClientID = errors.New("project must belong to a client")
-	ErrProjectInvalidDates    = errors.New("project end date must be after start date")
+	ErrProjectNameRequired           = errors.New("project name is required")
+	ErrProjectInvalidStatus          = errors.New("project status must be 1 (inactive) or 2 (active)")
+	ErrProjectInvalidClientID        = errors.New("project must belong to a client")
+	ErrProjectInvalidDates           = errors.New("project end date must be on or after start date")
+	ErrProjectInvalidHoursPerDay     = errors.New("hours per day must be between 1 and 24")
+	ErrProjectInvalidDaysPerWeek     = errors.New("days per week must be between 1 and 7")
+	ErrProjectInvalidWorkingDays     = errors.New("working days must contain valid weekdays (Sunday=0 to Saturday=6)")
+	ErrProjectDuplicateWorkingDays   = errors.New("working days must not contain duplicates")
+	ErrProjectWorkingDaysExceedsWeek = errors.New("working days cannot exceed 7 days")
 
 	ProjectAllowedSortField = map[string]string{
 		"id":          "id",
@@ -45,6 +55,13 @@ type Project struct {
 	CreatedAt   time.Time  `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime:milli" json:"updated_at"`
 
+	// Configurations
+	HoursPerDay        int          `gorm:"default:8" json:"hours_per_day"`
+	DaysPerWeek        int          `gorm:"default:5" json:"days_per_week"`
+	WorkingDaysPerWeek WeekdayArray `gorm:"type:text" json:"working_days_per_week"`
+	Timezone           string       `gorm:"default:''" json:"timezone"`
+	Currency           string       `gorm:"default:''" json:"currency"`
+
 	// Relationships
 	Client           *Client            `gorm:"foreignKey:ClientID" json:"client,omitempty"`
 	ProjectResources []*ProjectResource `gorm:"foreignKey:ProjectID" json:"project_resources,omitempty"`
@@ -60,11 +77,37 @@ func (p *Project) IsActive() bool {
 	return p.Status == ProjectStatusActive
 }
 
+// GetHoursPerDay returns the project's hours per day or the default if not set
+func (p *Project) GetHoursPerDay() int {
+	if p.HoursPerDay == 0 {
+		return DefaultProjectHoursPerDay
+	}
+	return p.HoursPerDay
+}
+
+// GetDaysPerWeek returns the project's days per week or the default if not set
+func (p *Project) GetDaysPerWeek() int {
+	if p.DaysPerWeek == 0 {
+		return DefaultProjectDaysPerWeek
+	}
+	return p.DaysPerWeek
+}
+
+// GetWorkingDaysPerWeek returns the project's working days or the default if not set
+func (p *Project) GetWorkingDaysPerWeek() WeekdayArray {
+	if len(p.WorkingDaysPerWeek) == 0 {
+		return DefaultWorkingDays()
+	}
+	return p.WorkingDaysPerWeek
+}
+
 // Validate validates the project fields
 func (p *Project) Validate() error {
 	// Trim whitespace from string fields
 	p.Name = strings.TrimSpace(p.Name)
 	p.Description = strings.TrimSpace(p.Description)
+	p.Timezone = strings.TrimSpace(p.Timezone)
+	p.Currency = strings.TrimSpace(p.Currency)
 
 	// Validate required fields
 	if p.Name == "" {
@@ -88,6 +131,45 @@ func (p *Project) Validate() error {
 		return err
 	}
 
+	// Validate configuration fields
+	if p.HoursPerDay != 0 && (p.HoursPerDay < 1 || p.HoursPerDay > 24) {
+		return ErrProjectInvalidHoursPerDay
+	}
+
+	if p.DaysPerWeek != 0 && (p.DaysPerWeek < 1 || p.DaysPerWeek > 7) {
+		return ErrProjectInvalidDaysPerWeek
+	}
+
+	// Validate working days
+	if err := p.validateWorkingDays(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Project) validateWorkingDays() error {
+	if len(p.WorkingDaysPerWeek) == 0 {
+		return nil // Empty is allowed (will use defaults)
+	}
+
+	if len(p.WorkingDaysPerWeek) > 7 {
+		return ErrProjectWorkingDaysExceedsWeek
+	}
+
+	seen := make(map[time.Weekday]bool)
+	for _, day := range p.WorkingDaysPerWeek {
+		// Validate weekday value is in range 0-6
+		if day < time.Sunday || day > time.Saturday {
+			return ErrProjectInvalidWorkingDays
+		}
+		// Check for duplicates
+		if seen[day] {
+			return ErrProjectDuplicateWorkingDays
+		}
+		seen[day] = true
+	}
+
 	return nil
 }
 
@@ -104,6 +186,11 @@ func (p *Project) BeforeCreate(tx *gorm.DB) error {
 	// Set default status if not valid
 	if err := p.validateStatus(); err != nil {
 		p.Status = ProjectStatusActive
+	}
+
+	// Set default working days if not set (HoursPerDay and DaysPerWeek use GORM defaults)
+	if len(p.WorkingDaysPerWeek) == 0 {
+		p.WorkingDaysPerWeek = DefaultWorkingDays()
 	}
 
 	return p.Validate()
