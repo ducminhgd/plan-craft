@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -15,13 +14,17 @@ import (
 	"gorm.io/gorm"
 )
 
+// OnDBChangedFunc is a callback type for when the database changes
+type OnDBChangedFunc func(db *gorm.DB)
+
 // DatabaseFileService handles database file operations (open, save as)
 type DatabaseFileService struct {
-	ctx             context.Context
-	currentDBPath   string
-	db              *gorm.DB
-	mu              sync.RWMutex
-	onDBChanged     func(*gorm.DB) // callback when DB changes
+	ctx           context.Context
+	currentDBPath string
+	isMemoryDB    bool // Tracks if current DB is memory/draft mode
+	db            *gorm.DB
+	mu            sync.RWMutex
+	onDBChanged   OnDBChangedFunc
 }
 
 // NewDatabaseFileService creates a new DatabaseFileService
@@ -29,22 +32,21 @@ func NewDatabaseFileService() *DatabaseFileService {
 	return &DatabaseFileService{}
 }
 
-// NewDatabaseFileServiceWithDB creates a new DatabaseFileService with an initial database
-func NewDatabaseFileServiceWithDB(ctx context.Context, db *gorm.DB, dbPath string) *DatabaseFileService {
-	return &DatabaseFileService{
-		ctx:           ctx,
-		db:            db,
-		currentDBPath: dbPath,
-	}
-}
-
 // SetupDatabaseFileService initializes an existing service with context and database
-func SetupDatabaseFileService(svc *DatabaseFileService, ctx context.Context, db *gorm.DB, dbPath string) {
+func SetupDatabaseFileService(svc *DatabaseFileService, ctx context.Context, db *gorm.DB, dbPath string, isMemory bool) {
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
 	svc.ctx = ctx
 	svc.db = db
 	svc.currentDBPath = dbPath
+	svc.isMemoryDB = isMemory
+}
+
+// SetOnDBChanged sets a callback that will be invoked when the database is switched
+func SetOnDBChanged(svc *DatabaseFileService, callback OnDBChangedFunc) {
+	svc.mu.Lock()
+	defer svc.mu.Unlock()
+	svc.onDBChanged = callback
 }
 
 // GetCurrentDatabasePath returns the current database file path
@@ -54,7 +56,16 @@ func (s *DatabaseFileService) GetCurrentDatabasePath() string {
 	return s.currentDBPath
 }
 
-// OpenDatabase opens a SQLite database file using a file dialog
+// IsMemoryDatabase returns true if the current database is in-memory (draft mode)
+func (s *DatabaseFileService) IsMemoryDatabase() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.isMemoryDB
+}
+
+// OpenDatabase opens a SQLite database file using a file dialog.
+// It switches to the new database and re-wires all dependencies via the onDBChanged callback.
+// Returns the selected file path.
 func (s *DatabaseFileService) OpenDatabase() (string, error) {
 	if s.ctx == nil {
 		return "", fmt.Errorf("context not initialized")
@@ -83,6 +94,15 @@ func (s *DatabaseFileService) OpenDatabase() (string, error) {
 		return "", nil
 	}
 
+	// Validate that the file exists
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return "", fmt.Errorf("file not found: %w", err)
+	}
+	if info.IsDir() {
+		return "", fmt.Errorf("path is a directory, not a file")
+	}
+
 	// Open the new database
 	newDB, err := s.openDatabaseFile(filePath)
 	if err != nil {
@@ -91,39 +111,77 @@ func (s *DatabaseFileService) OpenDatabase() (string, error) {
 
 	// Close the old database connection
 	s.mu.Lock()
-	if s.db != nil {
-		if sqlDB, err := s.db.DB(); err == nil {
+	oldDB := s.db
+	s.db = newDB
+	s.currentDBPath = filePath
+	s.isMemoryDB = false // Opening a file means we're no longer in draft mode
+	callback := s.onDBChanged
+	s.mu.Unlock()
+
+	if oldDB != nil {
+		if sqlDB, err := oldDB.DB(); err == nil {
 			sqlDB.Close()
 		}
 	}
-	s.db = newDB
-	s.currentDBPath = filePath
-	s.mu.Unlock()
 
-	// Notify callback that DB has changed
-	if s.onDBChanged != nil {
-		s.onDBChanged(newDB)
+	// Persist the selected database path for next app launch
+	if err := s.saveLastDatabasePath(filePath); err != nil {
+		// Non-fatal error, just log it
+		fmt.Printf("Warning: failed to save database path: %v\n", err)
+	}
+
+	// Notify the app to re-wire dependencies with the new database
+	if callback != nil {
+		callback(newDB)
 	}
 
 	return filePath, nil
 }
 
-// SaveDatabaseAs saves the current database to a new file
+// getSettingsFilePath returns the path to the settings file
+func getSettingsFilePath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ".plan-craft-settings"
+	}
+	return filepath.Join(homeDir, ".plan-craft", "settings")
+}
+
+// saveLastDatabasePath persists the database path for the next app launch
+func (s *DatabaseFileService) saveLastDatabasePath(dbPath string) error {
+	settingsPath := getSettingsFilePath()
+
+	// Create settings directory if it doesn't exist
+	settingsDir := filepath.Dir(settingsPath)
+	if err := os.MkdirAll(settingsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create settings directory: %w", err)
+	}
+
+	// Write the database path to the settings file
+	if err := os.WriteFile(settingsPath, []byte(dbPath), 0644); err != nil {
+		return fmt.Errorf("failed to write settings file: %w", err)
+	}
+
+	return nil
+}
+
+// SaveDatabaseAs saves the current database to a new file and switches to it
 func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 	if s.ctx == nil {
 		return "", fmt.Errorf("context not initialized")
 	}
 
 	s.mu.RLock()
-	currentPath := s.currentDBPath
+	isMemory := s.isMemoryDB
+	db := s.db
 	s.mu.RUnlock()
 
-	if currentPath == "" {
-		return "", fmt.Errorf("no database is currently open")
+	if db == nil {
+		return "", fmt.Errorf("database connection not available")
 	}
 
 	// Get default filename for save dialog
-	defaultFilename := filepath.Base(currentPath)
+	defaultFilename := "plancraft.db"
 
 	// Show save file dialog
 	filePath, err := runtime.SaveFileDialog(s.ctx, runtime.SaveDialogOptions{
@@ -154,12 +212,195 @@ func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 		filePath += ".db"
 	}
 
-	// Copy the current database file to the new location
-	if err := s.copyDatabaseFile(currentPath, filePath); err != nil {
-		return "", fmt.Errorf("failed to copy database: %w", err)
+	// Create destination directory if it doesn't exist
+	dstDir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dstDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	if isMemory {
+		// For memory database, we need to create the new file and copy data
+		// Open the new file database first
+		newDB, err := s.openDatabaseFile(filePath)
+		if err != nil {
+			return "", fmt.Errorf("failed to create database file: %w", err)
+		}
+
+		// Copy all data from memory to new file using SQLite backup
+		if err := s.copyDatabaseContent(db, newDB); err != nil {
+			// Close the new DB on error
+			if sqlDB, closeErr := newDB.DB(); closeErr == nil {
+				sqlDB.Close()
+			}
+			return "", fmt.Errorf("failed to copy data: %w", err)
+		}
+
+		// Switch to new database
+		s.mu.Lock()
+		oldDB := s.db
+		s.db = newDB
+		s.currentDBPath = filePath
+		s.isMemoryDB = false
+		callback := s.onDBChanged
+		s.mu.Unlock()
+
+		// Close old memory database
+		if oldDB != nil {
+			if sqlDB, err := oldDB.DB(); err == nil {
+				sqlDB.Close()
+			}
+		}
+
+		// Persist the database path for next app launch
+		if err := s.saveLastDatabasePath(filePath); err != nil {
+			fmt.Printf("Warning: failed to save database path: %v\n", err)
+		}
+
+		// Notify the app to re-wire dependencies with the new database
+		if callback != nil {
+			callback(newDB)
+		}
+	} else {
+		// For file-based database, use VACUUM INTO to create a consistent copy
+		// VACUUM INTO creates a new database file with all data from the current database.
+		// It's atomic and handles WAL mode correctly (available since SQLite 3.27.0).
+		if err := db.Exec("VACUUM INTO ?", filePath).Error; err != nil {
+			return "", fmt.Errorf("failed to save database: %w", err)
+		}
+
+		// Open and switch to the new file
+		newDB, err := s.openDatabaseFile(filePath)
+		if err != nil {
+			return "", fmt.Errorf("failed to open saved database: %w", err)
+		}
+
+		// Switch to new database
+		s.mu.Lock()
+		oldDB := s.db
+		s.db = newDB
+		s.currentDBPath = filePath
+		s.isMemoryDB = false
+		callback := s.onDBChanged
+		s.mu.Unlock()
+
+		// Close old database
+		if oldDB != nil {
+			if sqlDB, err := oldDB.DB(); err == nil {
+				sqlDB.Close()
+			}
+		}
+
+		// Persist the database path for next app launch
+		if err := s.saveLastDatabasePath(filePath); err != nil {
+			fmt.Printf("Warning: failed to save database path: %v\n", err)
+		}
+
+		// Notify the app to re-wire dependencies with the new database
+		if callback != nil {
+			callback(newDB)
+		}
 	}
 
 	return filePath, nil
+}
+
+// copyDatabaseContent copies all table data from source to destination database
+func (s *DatabaseFileService) copyDatabaseContent(srcDB, dstDB *gorm.DB) error {
+	// Get the underlying sql.DB connections
+	srcSqlDB, err := srcDB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get source sql.DB: %w", err)
+	}
+	dstSqlDB, err := dstDB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get destination sql.DB: %w", err)
+	}
+
+	// Get the raw connections for backup
+	srcConn, err := srcSqlDB.Conn(s.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get source connection: %w", err)
+	}
+	defer srcConn.Close()
+
+	dstConn, err := dstSqlDB.Conn(s.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get destination connection: %w", err)
+	}
+	defer dstConn.Close()
+
+	// Copy data table by table using INSERT INTO ... SELECT
+	// Get list of tables from source
+	var tables []string
+	rows, err := srcSqlDB.Query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+	if err != nil {
+		return fmt.Errorf("failed to get table list: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return fmt.Errorf("failed to scan table name: %w", err)
+		}
+		tables = append(tables, tableName)
+	}
+
+	// Copy each table's data
+	for _, table := range tables {
+		// Get all rows from source table
+		sourceRows, err := srcSqlDB.Query(fmt.Sprintf("SELECT * FROM %s", table))
+		if err != nil {
+			continue // Table might not have data or might be auto-generated
+		}
+
+		cols, err := sourceRows.Columns()
+		if err != nil {
+			sourceRows.Close()
+			continue
+		}
+
+		// Prepare values slice
+		values := make([]interface{}, len(cols))
+		valuePtrs := make([]interface{}, len(cols))
+		for i := range values {
+			valuePtrs[i] = &values[i]
+		}
+
+		// Build insert statement
+		placeholders := make([]string, len(cols))
+		for i := range placeholders {
+			placeholders[i] = "?"
+		}
+
+		insertSQL := fmt.Sprintf("INSERT INTO %s VALUES (%s)", table, joinStrings(placeholders, ", "))
+
+		// Copy rows
+		for sourceRows.Next() {
+			if err := sourceRows.Scan(valuePtrs...); err != nil {
+				continue
+			}
+			if _, err := dstSqlDB.Exec(insertSQL, values...); err != nil {
+				// Ignore duplicate key errors, continue with other rows
+				continue
+			}
+		}
+		sourceRows.Close()
+	}
+
+	return nil
+}
+
+// joinStrings joins strings with a separator (helper function)
+func joinStrings(strs []string, sep string) string {
+	if len(strs) == 0 {
+		return ""
+	}
+	result := strs[0]
+	for i := 1; i < len(strs); i++ {
+		result += sep + strs[i]
+	}
+	return result
 }
 
 // openDatabaseFile opens a SQLite database file with the configured pragmas
@@ -195,41 +436,6 @@ func (s *DatabaseFileService) openDatabaseFile(path string) (*gorm.DB, error) {
 	}
 
 	return db, nil
-}
-
-// copyDatabaseFile copies a database file to a new location
-func (s *DatabaseFileService) copyDatabaseFile(src, dst string) error {
-	// Create destination directory if it doesn't exist
-	dstDir := filepath.Dir(dst)
-	if err := os.MkdirAll(dstDir, 0755); err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
-	}
-
-	// Open source file
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
-	}
-	defer srcFile.Close()
-
-	// Create destination file
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
-	}
-	defer dstFile.Close()
-
-	// Copy contents
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return fmt.Errorf("failed to copy file contents: %w", err)
-	}
-
-	// Ensure the file is synced to disk
-	if err := dstFile.Sync(); err != nil {
-		return fmt.Errorf("failed to sync file: %w", err)
-	}
-
-	return nil
 }
 
 // OpenGuides opens the guides page in the default browser

@@ -9,6 +9,15 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
+// MemoryDSN is the special DSN for in-memory SQLite database (draft mode)
+// Using file::memory:?cache=shared ensures all connections share the same in-memory database
+const MemoryDSN = "file::memory:?cache=shared"
+
+// IsMemoryDSN checks if the given DSN is the memory database DSN
+func IsMemoryDSN(dsn string) bool {
+	return dsn == MemoryDSN
+}
+
 var (
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	Cfg    = Load()
@@ -66,10 +75,41 @@ func Load() Config {
 		c.LogPath = getDefaultLogPath()
 	}
 	if c.DB.DSN == "" {
-		c.DB.DSN = getDefaultDBPath()
+		// Check for persisted database path from previous session
+		if lastDBPath := loadLastDatabasePath(); lastDBPath != "" {
+			c.DB.DSN = lastDBPath
+		} else {
+			// Start with memory database (draft mode) when no persisted path exists
+			c.DB.DSN = MemoryDSN
+		}
 	}
 
 	return c
+}
+
+// loadLastDatabasePath reads the persisted database path from the settings file.
+// Returns empty string if no settings file exists or on error.
+func loadLastDatabasePath() string {
+	settingsPath := getSettingsFilePath()
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		return ""
+	}
+	path := string(data)
+	// Validate the file still exists before using it
+	if _, err := os.Stat(path); err != nil {
+		return ""
+	}
+	return path
+}
+
+// getSettingsFilePath returns the path to the settings file
+func getSettingsFilePath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ".plan-craft-settings"
+	}
+	return filepath.Join(homeDir, ".plan-craft", "settings")
 }
 
 // EnsureLogDirectory creates the log directory if it doesn't exist

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, Modal, message } from 'antd';
 import type { MenuProps } from 'antd';
 import { Quit, BrowserOpenURL } from '../../wailsjs/runtime/runtime';
-import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath } from '../../wailsjs/go/services/DatabaseFileService';
+import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath, IsMemoryDatabase } from '../../wailsjs/go/services/DatabaseFileService';
 import './MenuBar.css';
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -14,10 +14,12 @@ const modKey = isMac ? '⌘' : 'Ctrl';
 export default function MenuBar() {
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [currentDbPath, setCurrentDbPath] = useState<string>('');
+  const [isDraft, setIsDraft] = useState<boolean>(false);
 
-  // Fetch current database path on mount
+  // Fetch current database path and draft status on mount
   useEffect(() => {
     GetCurrentDatabasePath().then(setCurrentDbPath).catch(() => {});
+    IsMemoryDatabase().then(setIsDraft).catch(() => {});
   }, []);
 
   // Register keyboard shortcuts
@@ -42,15 +44,34 @@ export default function MenuBar() {
   }, []);
 
   const handleExit = () => {
-    Modal.confirm({
-      title: 'Exit Application',
-      content: 'Are you sure you want to exit Plan Craft?',
-      okText: 'Exit',
-      cancelText: 'Cancel',
-      onOk: () => {
-        Quit();
-      },
-    });
+    if (isDraft) {
+      Modal.confirm({
+        title: 'Unsaved Changes',
+        content: 'You have unsaved changes in draft mode. Would you like to save before exiting?',
+        okText: 'Save',
+        cancelText: 'Exit without saving',
+        onOk: async () => {
+          // Don't reload when saving before exit
+          const filePath = await handleSaveAs(false);
+          if (filePath) {
+            Quit();
+          }
+        },
+        onCancel: () => {
+          Quit();
+        },
+      });
+    } else {
+      Modal.confirm({
+        title: 'Exit Application',
+        content: 'Are you sure you want to exit Plan Craft?',
+        okText: 'Exit',
+        cancelText: 'Cancel',
+        onOk: () => {
+          Quit();
+        },
+      });
+    }
   };
 
   const handleOpenFile = async () => {
@@ -58,8 +79,9 @@ export default function MenuBar() {
       const filePath = await OpenDatabase();
       if (filePath) {
         setCurrentDbPath(filePath);
-        message.success(`Opened database: ${filePath}`);
-        // Reload the page to reflect the new database
+        setIsDraft(false);
+        message.success(`Switched to database: ${filePath.split(/[/\\]/).pop()}`);
+        // Reload the page to refresh all data from the new database
         window.location.reload();
       }
     } catch (error) {
@@ -67,14 +89,23 @@ export default function MenuBar() {
     }
   };
 
-  const handleSaveAs = async () => {
+  const handleSaveAs = async (shouldReload: boolean = true): Promise<string | null> => {
     try {
       const filePath = await SaveDatabaseAs();
       if (filePath) {
-        message.success(`Database saved to: ${filePath}`);
+        setCurrentDbPath(filePath);
+        setIsDraft(false);
+        message.success(`Database saved to: ${filePath.split(/[/\\]/).pop()}`);
+        // Reload the page to refresh all data from the new database
+        if (shouldReload) {
+          window.location.reload();
+        }
+        return filePath;
       }
+      return null;
     } catch (error) {
       message.error(`Failed to save database: ${error}`);
+      return null;
     }
   };
 
@@ -95,7 +126,7 @@ export default function MenuBar() {
     {
       key: 'save-as',
       label: `Save as (${modKey}+Shift+S)`,
-      onClick: handleSaveAs,
+      onClick: () => handleSaveAs(),
     },
     {
       type: 'divider',
@@ -147,7 +178,11 @@ export default function MenuBar() {
             borderBottom: '1px solid #f0f0f0',
           }}
         />
-        {currentDbPath && (
+        {isDraft ? (
+          <span className="current-db-path draft" title="Unsaved draft - use Save As to persist">
+            draft
+          </span>
+        ) : currentDbPath && (
           <span className="current-db-path" title={currentDbPath}>
             {currentDbPath.split(/[/\\]/).pop()}
           </span>

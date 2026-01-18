@@ -36,3 +36,9 @@
   white-space: nowrap;
   cursor: default;
 }
+
+.menu-bar .current-db-path.draft {
+  color: #fa8c16;
+  font-style: italic;
+  font-weight: 500;
+}
