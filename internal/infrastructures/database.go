@@ -63,6 +63,7 @@ func InitializeDatabase() (*gorm.DB, error) {
 		&entities.Project{},
 		&entities.ProjectResource{},
 		&entities.Milestone{},
+		&entities.Task{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to auto-migrate: %w", err)
