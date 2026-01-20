@@ -203,10 +203,6 @@ func (r *TaskRepository) GetMany(ctx context.Context, qParams *entities.TaskQuer
 func (r *TaskRepository) Update(ctx context.Context, task *entities.Task) (int64, error) {
 	result := r.db.WithContext(ctx).Model(task).Clauses(clause.Returning{}).Where("id = ?", task.ID).Select("*").Updates(&task)
 	if err := result.Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			internal.Logger.Error("record not found", "repository", "task", "method", "Update", "error", err)
-			return result.RowsAffected, entities.ErrRecordNotFound
-		}
 		if errors.Is(err, gorm.ErrInvalidData) {
 			internal.Logger.Error("invalid data", "repository", "task", "method", "Update", "error", err)
 			return result.RowsAffected, entities.ErrInvalidData
@@ -226,23 +222,27 @@ func (r *TaskRepository) Update(ctx context.Context, task *entities.Task) (int64
 		internal.Logger.Error("failed to update task", "repository", "task", "method", "Update", "error", err)
 		return result.RowsAffected, err
 	}
+	// Check if no rows were affected (record not found)
+	if result.RowsAffected == 0 {
+		return 0, entities.ErrRecordNotFound
+	}
 	return result.RowsAffected, nil
 }
 
 // Delete deletes a task by ID
 func (r *TaskRepository) Delete(ctx context.Context, id uint) error {
-	err := r.db.WithContext(ctx).Delete(&entities.Task{}, id).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			internal.Logger.Error("record not found", "repository", "task", "method", "Delete", "error", err)
-			return entities.ErrRecordNotFound
-		}
+	result := r.db.WithContext(ctx).Delete(&entities.Task{}, id)
+	if err := result.Error; err != nil {
 		if errors.Is(err, gorm.ErrForeignKeyViolated) {
 			internal.Logger.Error("foreign key violated", "repository", "task", "method", "Delete", "error", err)
 			return entities.ErrForeignKeyViolated
 		}
 		internal.Logger.Error("failed to delete task", "repository", "task", "method", "Delete", "error", err)
 		return err
+	}
+	// Check if no rows were affected (record not found)
+	if result.RowsAffected == 0 {
+		return entities.ErrRecordNotFound
 	}
 	return nil
 }
