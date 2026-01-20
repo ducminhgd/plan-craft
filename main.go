@@ -26,8 +26,12 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
-	// Create menu service
+	// Create database file service
+	dbFileService := services.NewDatabaseFileService()
+
+	// Create menu service and connect it with database file service
 	menuService := services.NewMenuService()
+	menuService.SetDatabaseFileService(dbFileService)
 
 	// Menu will be built in OnStartup after context is available
 	var appMenu *menu.Menu
@@ -44,11 +48,15 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		Menu:             appMenu,
 		OnStartup: func(ctx context.Context) {
-			app.startup(ctx)
+			// Initialize app (including database) and database file service
+			app.startup(ctx, dbFileService)
+
+			// Build menu after context is available
 			appMenu = menuService.BuildApplicationMenu(ctx)
 		},
 		Bind: []interface{}{
 			app,
+			dbFileService,
 		},
 		Logger:             logger.NewFileLogger(config.Cfg.LogPath),
 		LogLevel:           internal.ConvertWailsLogLevel(config.Cfg.LogLevel),

@@ -1,0 +1,58 @@
+/* Main container - holds sidebar and content side by side */
+.main-container {
+  height: calc(100vh - 40px);
+  overflow: hidden;
+}
+
+/* Content wrapper - takes remaining space after sidebar */
+.content-wrapper {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Content container - scrollable area for page content */
+.content-container {
+  margin: 24px 16px;
+  padding: 24px;
+  background: #fff;
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Sidebar scrolling - apply to Ant Design Sider */
+.main-container > .ant-layout-sider {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar by default, show on hover for cleaner look */
+.content-container::-webkit-scrollbar,
+.main-container > .ant-layout-sider::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-container::-webkit-scrollbar-track,
+.main-container > .ant-layout-sider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-container::-webkit-scrollbar-thumb,
+.main-container > .ant-layout-sider::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.main-container > .ant-layout-sider::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.content-container::-webkit-scrollbar-thumb:hover,
+.main-container > .ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.main-container > .ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
