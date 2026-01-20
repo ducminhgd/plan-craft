@@ -9,8 +9,10 @@ import {
   UnorderedListOutlined,
   PushpinOutlined,
   UserOutlined,
-  ScheduleOutlined,
   FlagOutlined,
+  AppstoreOutlined,
+  ApartmentOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -64,19 +66,26 @@ export default function Sidebar() {
       ],
     },
     {
-      key: 'human-resources',
-      icon: <UserOutlined />,
-      label: 'Human Resource',
+      key: 'resources',
+      icon: <AppstoreOutlined />,
+      label: 'Resources',
       children: [
         {
-          key: '/human-resources',
-          icon: <UnorderedListOutlined />,
-          label: 'List',
-        },
-        {
-          key: '/human-resources/new',
-          icon: <PlusOutlined />,
-          label: 'Add New',
+          key: 'human-resources',
+          icon: <UserOutlined />,
+          label: 'Human',
+          children: [
+            {
+              key: '/human-resources',
+              icon: <UnorderedListOutlined />,
+              label: 'List',
+            },
+            {
+              key: '/human-resources/new',
+              icon: <PlusOutlined />,
+              label: 'Add New',
+            },
+          ],
         },
       ],
     },
@@ -98,6 +107,30 @@ export default function Sidebar() {
       ],
     },
     {
+      key: 'project-plan',
+      icon: <ApartmentOutlined />,
+      label: 'Project Plan',
+      children: [
+        {
+          key: 'milestones',
+          icon: <FlagOutlined />,
+          label: 'Milestones',
+          children: [
+            {
+              key: '/milestones',
+              icon: <UnorderedListOutlined />,
+              label: 'List',
+            },
+            {
+              key: '/milestones/new',
+              icon: <PlusOutlined />,
+              label: 'Add New',
+            },
+          ],
+        },
+      ],
+    },
+    {
       key: 'resource-allocations',
       icon: <ScheduleOutlined />,
       label: 'Project Allocation',
@@ -109,23 +142,6 @@ export default function Sidebar() {
         },
         {
           key: '/resource-allocations/new',
-          icon: <PlusOutlined />,
-          label: 'Add New',
-        },
-      ],
-    },
-    {
-      key: 'milestones',
-      icon: <FlagOutlined />,
-      label: 'Milestone',
-      children: [
-        {
-          key: '/milestones',
-          icon: <UnorderedListOutlined />,
-          label: 'List',
-        },
-        {
-          key: '/milestones/new',
           icon: <PlusOutlined />,
           label: 'Add New',
         },
@@ -152,7 +168,7 @@ export default function Sidebar() {
             theme="dark"
             mode="inline"
             selectedKeys={[location.pathname]}
-            defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations', 'milestones']}
+            defaultOpenKeys={['clients', 'resources', 'human-resources', 'projects', 'project-plan', 'milestones', 'resource-allocations']}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
             style={{ textAlign: 'left' }}
