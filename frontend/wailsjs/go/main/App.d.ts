@@ -6,6 +6,8 @@ export function CreateClient(arg1:entities.Client):Promise<entities.Client>;
 
 export function CreateHumanResource(arg1:entities.HumanResource):Promise<entities.HumanResource>;
 
+export function CreateMilestone(arg1:entities.Milestone):Promise<entities.Milestone>;
+
 export function CreateProject(arg1:entities.Project):Promise<entities.Project>;
 
 export function CreateProjectResource(arg1:entities.ProjectResource):Promise<entities.ProjectResource>;
@@ -13,6 +15,8 @@ export function CreateProjectResource(arg1:entities.ProjectResource):Promise<ent
 export function DeleteClient(arg1:number):Promise<void>;
 
 export function DeleteHumanResource(arg1:number):Promise<void>;
+
+export function DeleteMilestone(arg1:number):Promise<void>;
 
 export function DeleteProject(arg1:number):Promise<void>;
 
@@ -28,6 +32,10 @@ export function GetHumanResource(arg1:number):Promise<entities.HumanResource>;
 
 export function GetHumanResources(arg1:entities.HumanResourceQueryParams):Promise<entities.HumanResourceListResponse>;
 
+export function GetMilestone(arg1:number):Promise<entities.Milestone>;
+
+export function GetMilestones(arg1:entities.MilestoneQueryParams):Promise<entities.MilestoneListResponse>;
+
 export function GetProject(arg1:number):Promise<entities.Project>;
 
 export function GetProjectResource(arg1:number):Promise<entities.ProjectResource>;
@@ -39,6 +47,8 @@ export function GetProjects(arg1:entities.ProjectQueryParams):Promise<entities.P
 export function UpdateClient(arg1:entities.Client):Promise<number>;
 
 export function UpdateHumanResource(arg1:entities.HumanResource):Promise<number>;
+
+export function UpdateMilestone(arg1:entities.Milestone):Promise<number>;
 
 export function UpdateProject(arg1:entities.Project):Promise<number>;
 

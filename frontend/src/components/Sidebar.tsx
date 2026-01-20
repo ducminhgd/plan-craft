@@ -10,6 +10,7 @@ import {
   PushpinOutlined,
   UserOutlined,
   ScheduleOutlined,
+  FlagOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -113,6 +114,23 @@ export default function Sidebar() {
         },
       ],
     },
+    {
+      key: 'milestones',
+      icon: <FlagOutlined />,
+      label: 'Milestone',
+      children: [
+        {
+          key: '/milestones',
+          icon: <UnorderedListOutlined />,
+          label: 'List',
+        },
+        {
+          key: '/milestones/new',
+          icon: <PlusOutlined />,
+          label: 'Add New',
+        },
+      ],
+    },
   ];
 
   return (
@@ -123,27 +141,29 @@ export default function Sidebar() {
       collapsedWidth={80}
       breakpoint="lg"
       trigger={pinned ? null : undefined}
-      style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+      style={{ height: '100vh', position: 'sticky', top: 0, left: 0 }}
     >
-      <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
-        {/* Logo placeholder */}
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations']}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-          style={{ textAlign: 'left' }}
-        />
-      </div>
-      <div style={{ padding: 16, flexShrink: 0 }}>
-        <PushpinOutlined
-          style={{ color: pinned ? '#1890ff' : '#fff', cursor: 'pointer' }}
-          onClick={() => setPinned(!pinned)}
-        />
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
+          {/* Logo placeholder */}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations', 'milestones']}
+            items={menuItems}
+            onClick={({ key }) => navigate(key)}
+            style={{ textAlign: 'left' }}
+          />
+        </div>
+        <div style={{ padding: 16, flexShrink: 0 }}>
+          <PushpinOutlined
+            style={{ color: pinned ? '#1890ff' : '#fff', cursor: 'pointer' }}
+            onClick={() => setPinned(!pinned)}
+          />
+        </div>
       </div>
     </Sider>
   );
