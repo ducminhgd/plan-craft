@@ -9,6 +9,26 @@ This product has some core features:
    4. Client (we have client management)
    5. Project Manager
 2. Work Breakdown Structure (WBS)
+   1. A milestone has:
+      1. Name
+      2. Project it belongs to (required)
+      3. Start date
+      4. End date
+      5. Status
+      6. Description
+   2. A task has:
+      1. Name
+      2. Level: if the task does not belong to a parent task, the level is 1. If the task belongs to a parent task, the level is the parent task's level + 1.
+      3. Project it belongs to (required)
+      4. Milestones it belongs to (optional). When a task is added to a milestone, it will be added to the project of that milestone automatically.
+      5. Priority: Low, Medium, High, Critical.
+      6. Estimated effort in man-days
+      7. Parent task (optional). A task belongs to a parent task only.
+      8. Description
+      9. Status: To Do, In Progress, Done, Cancelled.
+   3. A task can be linked to another task with a dependency. The dependency can be:
+      1. Blocking: a task cannot be started until this task is completed.
+      2. Blocked by: this task cannot be started until another task is completed.
 3. Timeline & Dependencies
    1. Auto-calculated project duration
    2. Gantt-style timeline (read-only initially)
@@ -68,10 +88,6 @@ This product has some core features:
 ## Roadmap
 
 1. Version 1: Desktop Application can run on MacOS, Windows, and Linux.
-   1. Version 1.0: Project management, work items management.
-   2. Version 1.1: Timeline estimation.
-   3. Version 1.2: Resource planning.
-   4. Version 1.3: Cost estimation.
 2. Version 2: Web Application. Can connect to an REST API Server. (will do later)
 
 We are implementing version 1 first.

@@ -67,6 +67,10 @@ func (a *App) wireHandlers(ctx context.Context, db *gorm.DB) {
 	projectResourceService := services.NewProjectResourceService(projectResourceRepo)
 	projectResourceHandler := handlers.NewProjectResourceHandler(ctx, projectResourceService)
 
+	milestoneRepo := repositories.NewMilestoneRepository(db)
+	milestoneService := services.NewMilestoneService(milestoneRepo)
+	milestoneHandler := handlers.NewMilestoneHandler(ctx, milestoneService)
+
 	// Update handlers container with new handlers
-	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler, projectHandler, projectResourceHandler)
+	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler, projectHandler, projectResourceHandler, milestoneHandler)
 }
