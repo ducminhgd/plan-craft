@@ -9,6 +9,9 @@ import {
   UnorderedListOutlined,
   PushpinOutlined,
   UserOutlined,
+  FlagOutlined,
+  AppstoreOutlined,
+  ApartmentOutlined,
   ScheduleOutlined,
 } from '@ant-design/icons';
 
@@ -63,19 +66,26 @@ export default function Sidebar() {
       ],
     },
     {
-      key: 'human-resources',
-      icon: <UserOutlined />,
-      label: 'Human Resource',
+      key: 'resources',
+      icon: <AppstoreOutlined />,
+      label: 'Resources',
       children: [
         {
-          key: '/human-resources',
-          icon: <UnorderedListOutlined />,
-          label: 'List',
-        },
-        {
-          key: '/human-resources/new',
-          icon: <PlusOutlined />,
-          label: 'Add New',
+          key: 'human-resources',
+          icon: <UserOutlined />,
+          label: 'Human',
+          children: [
+            {
+              key: '/human-resources',
+              icon: <UnorderedListOutlined />,
+              label: 'List',
+            },
+            {
+              key: '/human-resources/new',
+              icon: <PlusOutlined />,
+              label: 'Add New',
+            },
+          ],
         },
       ],
     },
@@ -93,6 +103,30 @@ export default function Sidebar() {
           key: '/projects/new',
           icon: <PlusOutlined />,
           label: 'Add New',
+        },
+      ],
+    },
+    {
+      key: 'project-plan',
+      icon: <ApartmentOutlined />,
+      label: 'Project Plan',
+      children: [
+        {
+          key: 'milestones',
+          icon: <FlagOutlined />,
+          label: 'Milestones',
+          children: [
+            {
+              key: '/milestones',
+              icon: <UnorderedListOutlined />,
+              label: 'List',
+            },
+            {
+              key: '/milestones/new',
+              icon: <PlusOutlined />,
+              label: 'Add New',
+            },
+          ],
         },
       ],
     },
@@ -123,27 +157,29 @@ export default function Sidebar() {
       collapsedWidth={80}
       breakpoint="lg"
       trigger={pinned ? null : undefined}
-      style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+      style={{ height: '100vh', position: 'sticky', top: 0, left: 0 }}
     >
-      <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
-        {/* Logo placeholder */}
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations']}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-          style={{ textAlign: 'left' }}
-        />
-      </div>
-      <div style={{ padding: 16, flexShrink: 0 }}>
-        <PushpinOutlined
-          style={{ color: pinned ? '#1890ff' : '#fff', cursor: 'pointer' }}
-          onClick={() => setPinned(!pinned)}
-        />
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
+          {/* Logo placeholder */}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            defaultOpenKeys={['clients', 'resources', 'human-resources', 'projects', 'project-plan', 'milestones', 'resource-allocations']}
+            items={menuItems}
+            onClick={({ key }) => navigate(key)}
+            style={{ textAlign: 'left' }}
+          />
+        </div>
+        <div style={{ padding: 16, flexShrink: 0 }}>
+          <PushpinOutlined
+            style={{ color: pinned ? '#1890ff' : '#fff', cursor: 'pointer' }}
+            onClick={() => setPinned(!pinned)}
+          />
+        </div>
       </div>
     </Sider>
   );

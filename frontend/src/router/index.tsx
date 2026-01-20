@@ -9,6 +9,8 @@ import HumanResourceList from '../pages/human-resources/HumanResourceList';
 import HumanResourceForm from '../pages/human-resources/HumanResourceForm';
 import ResourceAllocationList from '../pages/resource-allocations/ResourceAllocationList';
 import ResourceAllocationForm from '../pages/resource-allocations/ResourceAllocationForm';
+import MilestoneList from '../pages/milestones/MilestoneList';
+import MilestoneForm from '../pages/milestones/MilestoneForm';
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +30,9 @@ export const router = createBrowserRouter([
       { path: 'resource-allocations', element: <ResourceAllocationList /> },
       { path: 'resource-allocations/new', element: <ResourceAllocationForm /> },
       { path: 'resource-allocations/:id', element: <ResourceAllocationForm /> },
+      { path: 'milestones', element: <MilestoneList /> },
+      { path: 'milestones/new', element: <MilestoneForm /> },
+      { path: 'milestones/:id', element: <MilestoneForm /> },
     ],
   },
 ]);

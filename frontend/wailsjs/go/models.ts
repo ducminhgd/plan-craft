@@ -444,6 +444,164 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class Milestone {
+	    id: number;
+	    name: string;
+	    description: string;
+	    project_id: number;
+	    // Go type: time
+	    start_date?: any;
+	    // Go type: time
+	    end_date?: any;
+	    status: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    project?: Project;
+	
+	    static createFrom(source: any = {}) {
+	        return new Milestone(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.project_id = source["project_id"];
+	        this.start_date = this.convertValues(source["start_date"], null);
+	        this.end_date = this.convertValues(source["end_date"], null);
+	        this.status = source["status"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.project = this.convertValues(source["project"], Project);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class MilestoneListResponse {
+	    data: Milestone[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new MilestoneListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], Milestone);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class MilestoneQueryParams {
+	    id_in: number[];
+	    name: string;
+	    name_like: string;
+	    description_like: string;
+	    project_id: number;
+	    project_id_in: number[];
+	    status: number;
+	    status_in: number[];
+	    // Go type: time
+	    start_date_gte?: any;
+	    // Go type: time
+	    start_date_lte?: any;
+	    // Go type: time
+	    end_date_gte?: any;
+	    // Go type: time
+	    end_date_lte?: any;
+	    // Go type: time
+	    created_at_gte?: any;
+	    // Go type: time
+	    created_at_lte?: any;
+	    // Go type: time
+	    updated_at_gte?: any;
+	    // Go type: time
+	    updated_at_lte?: any;
+	    // Go type: Pagination
+	    pagination?: any;
+	    sorts?: Sort[];
+	
+	    static createFrom(source: any = {}) {
+	        return new MilestoneQueryParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_in = source["id_in"];
+	        this.name = source["name"];
+	        this.name_like = source["name_like"];
+	        this.description_like = source["description_like"];
+	        this.project_id = source["project_id"];
+	        this.project_id_in = source["project_id_in"];
+	        this.status = source["status"];
+	        this.status_in = source["status_in"];
+	        this.start_date_gte = this.convertValues(source["start_date_gte"], null);
+	        this.start_date_lte = this.convertValues(source["start_date_lte"], null);
+	        this.end_date_gte = this.convertValues(source["end_date_gte"], null);
+	        this.end_date_lte = this.convertValues(source["end_date_lte"], null);
+	        this.created_at_gte = this.convertValues(source["created_at_gte"], null);
+	        this.created_at_lte = this.convertValues(source["created_at_lte"], null);
+	        this.updated_at_gte = this.convertValues(source["updated_at_gte"], null);
+	        this.updated_at_lte = this.convertValues(source["updated_at_lte"], null);
+	        this.pagination = this.convertValues(source["pagination"], null);
+	        this.sorts = this.convertValues(source["sorts"], Sort);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
 	export class ProjectListResponse {
 	    data: Project[];
 	    total: number;

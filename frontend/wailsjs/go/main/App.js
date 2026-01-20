@@ -10,6 +10,10 @@ export function CreateHumanResource(arg1) {
   return window['go']['main']['App']['CreateHumanResource'](arg1);
 }
 
+export function CreateMilestone(arg1) {
+  return window['go']['main']['App']['CreateMilestone'](arg1);
+}
+
 export function CreateProject(arg1) {
   return window['go']['main']['App']['CreateProject'](arg1);
 }
@@ -24,6 +28,10 @@ export function DeleteClient(arg1) {
 
 export function DeleteHumanResource(arg1) {
   return window['go']['main']['App']['DeleteHumanResource'](arg1);
+}
+
+export function DeleteMilestone(arg1) {
+  return window['go']['main']['App']['DeleteMilestone'](arg1);
 }
 
 export function DeleteProject(arg1) {
@@ -54,6 +62,14 @@ export function GetHumanResources(arg1) {
   return window['go']['main']['App']['GetHumanResources'](arg1);
 }
 
+export function GetMilestone(arg1) {
+  return window['go']['main']['App']['GetMilestone'](arg1);
+}
+
+export function GetMilestones(arg1) {
+  return window['go']['main']['App']['GetMilestones'](arg1);
+}
+
 export function GetProject(arg1) {
   return window['go']['main']['App']['GetProject'](arg1);
 }
@@ -76,6 +92,10 @@ export function UpdateClient(arg1) {
 
 export function UpdateHumanResource(arg1) {
   return window['go']['main']['App']['UpdateHumanResource'](arg1);
+}
+
+export function UpdateMilestone(arg1) {
+  return window['go']['main']['App']['UpdateMilestone'](arg1);
 }
 
 export function UpdateProject(arg1) {
