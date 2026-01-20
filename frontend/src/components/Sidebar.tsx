@@ -123,20 +123,23 @@ export default function Sidebar() {
       collapsedWidth={80}
       breakpoint="lg"
       trigger={pinned ? null : undefined}
+      style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
     >
-      <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)' }}>
+      <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
         {/* Logo placeholder */}
       </div>
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[location.pathname]}
-        defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations']}
-        items={menuItems}
-        onClick={({ key }) => navigate(key)}
-        style={{ textAlign: 'left' }}
-      />
-      <div style={{ position: 'absolute', bottom: 16, left: 16 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          defaultOpenKeys={['clients', 'human-resources', 'projects', 'resource-allocations']}
+          items={menuItems}
+          onClick={({ key }) => navigate(key)}
+          style={{ textAlign: 'left' }}
+        />
+      </div>
+      <div style={{ padding: 16, flexShrink: 0 }}>
         <PushpinOutlined
           style={{ color: pinned ? '#1890ff' : '#fff', cursor: 'pointer' }}
           onClick={() => setPinned(!pinned)}

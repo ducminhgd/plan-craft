@@ -3,6 +3,8 @@
 
 export function GetCurrentDatabasePath():Promise<string>;
 
+export function HasUnsavedChanges():Promise<boolean>;
+
 export function IsMemoryDatabase():Promise<boolean>;
 
 export function OpenDatabase():Promise<string>;

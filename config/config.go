@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sethvargo/go-envconfig"
 )
@@ -95,7 +96,7 @@ func loadLastDatabasePath() string {
 	if err != nil {
 		return ""
 	}
-	path := string(data)
+	path := strings.TrimSpace(string(data))
 	// Validate the file still exists before using it
 	if _, err := os.Stat(path); err != nil {
 		return ""

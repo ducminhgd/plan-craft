@@ -6,6 +6,10 @@ export function GetCurrentDatabasePath() {
   return window['go']['services']['DatabaseFileService']['GetCurrentDatabasePath']();
 }
 
+export function HasUnsavedChanges() {
+  return window['go']['services']['DatabaseFileService']['HasUnsavedChanges']();
+}
+
 export function IsMemoryDatabase() {
   return window['go']['services']['DatabaseFileService']['IsMemoryDatabase']();
 }

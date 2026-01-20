@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, Modal, message } from 'antd';
 import type { MenuProps } from 'antd';
 import { Quit, BrowserOpenURL } from '../../wailsjs/runtime/runtime';
-import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath, IsMemoryDatabase } from '../../wailsjs/go/services/DatabaseFileService';
+import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath, IsMemoryDatabase, HasUnsavedChanges } from '../../wailsjs/go/services/DatabaseFileService';
 import './MenuBar.css';
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -26,14 +26,13 @@ export default function MenuBar() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const modPressed = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modPressed && e.key === 'o') {
+      if (modPressed && (e.key === 'o' || e.key === 'O')) {
         e.preventDefault();
         handleOpenFile();
-      } else if (modPressed && e.shiftKey && e.key === 's') {
+      } else if (modPressed && e.shiftKey && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         handleSaveAs();
-      } else if (modPressed && e.key === 'q') {
+      } else if (modPressed && (e.key === 'q' || e.key === 'Q')) {
         e.preventDefault();
         handleExit();
       }
@@ -43,24 +42,31 @@ export default function MenuBar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleExit = () => {
+  const handleExit = async () => {
     if (isDraft) {
-      Modal.confirm({
-        title: 'Unsaved Changes',
-        content: 'You have unsaved changes in draft mode. Would you like to save before exiting?',
-        okText: 'Save',
-        cancelText: 'Exit without saving',
-        onOk: async () => {
-          // Don't reload when saving before exit
-          const filePath = await handleSaveAs(false);
-          if (filePath) {
+      // Check if there are actual changes in draft mode
+      const hasChanges = await HasUnsavedChanges().catch(() => false);
+      if (hasChanges) {
+        Modal.confirm({
+          title: 'Unsaved Changes',
+          content: 'You have unsaved changes in draft mode. Would you like to save before exiting?',
+          okText: 'Save',
+          cancelText: 'Exit without saving',
+          onOk: async () => {
+            // Don't reload when saving before exit
+            const filePath = await handleSaveAs(false);
+            if (filePath) {
+              Quit();
+            }
+          },
+          onCancel: () => {
             Quit();
-          }
-        },
-        onCancel: () => {
-          Quit();
-        },
-      });
+          },
+        });
+      } else {
+        // No changes in draft mode, exit immediately
+        Quit();
+      }
     } else {
       Modal.confirm({
         title: 'Exit Application',

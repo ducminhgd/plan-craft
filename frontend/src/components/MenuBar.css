@@ -42,3 +42,12 @@
   font-style: italic;
   font-weight: 500;
 }
+
+/* Align dropdown menu items to the left */
+.ant-menu-submenu-popup .ant-menu-item {
+  text-align: left;
+}
+
+.ant-menu-submenu-popup .ant-menu-vertical .ant-menu-item {
+  text-align: left;
+}

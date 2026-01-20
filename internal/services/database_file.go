@@ -63,6 +63,49 @@ func (s *DatabaseFileService) IsMemoryDatabase() bool {
 	return s.isMemoryDB
 }
 
+// HasUnsavedChanges returns true if in draft mode and there are records in the database.
+// This is used to determine if the user should be prompted before exiting.
+func (s *DatabaseFileService) HasUnsavedChanges() bool {
+	s.mu.RLock()
+	isMemory := s.isMemoryDB
+	db := s.db
+	s.mu.RUnlock()
+
+	// If not in memory/draft mode, no "unsaved" changes to worry about
+	if !isMemory {
+		return false
+	}
+
+	if db == nil {
+		return false
+	}
+
+	// Check if any of the tracked entities have records
+	var count int64
+
+	// Check clients
+	if err := db.Model(&entities.Client{}).Count(&count).Error; err == nil && count > 0 {
+		return true
+	}
+
+	// Check human resources
+	if err := db.Model(&entities.HumanResource{}).Count(&count).Error; err == nil && count > 0 {
+		return true
+	}
+
+	// Check projects
+	if err := db.Model(&entities.Project{}).Count(&count).Error; err == nil && count > 0 {
+		return true
+	}
+
+	// Check project resources
+	if err := db.Model(&entities.ProjectResource{}).Count(&count).Error; err == nil && count > 0 {
+		return true
+	}
+
+	return false
+}
+
 // OpenDatabase opens a SQLite database file using a file dialog.
 // It switches to the new database and re-wires all dependencies via the onDBChanged callback.
 // Returns the selected file path.
