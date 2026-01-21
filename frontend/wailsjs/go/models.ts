@@ -823,6 +823,187 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class Task {
+	    id: number;
+	    name: string;
+	    description: string;
+	    level: number;
+	    project_id: number;
+	    milestone_id?: number;
+	    parent_id?: number;
+	    priority: number;
+	    estimated_effort: number;
+	    status: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    project?: Project;
+	    milestone?: Milestone;
+	    parent?: Task;
+	    children?: Task[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Task(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.level = source["level"];
+	        this.project_id = source["project_id"];
+	        this.milestone_id = source["milestone_id"];
+	        this.parent_id = source["parent_id"];
+	        this.priority = source["priority"];
+	        this.estimated_effort = source["estimated_effort"];
+	        this.status = source["status"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.project = this.convertValues(source["project"], Project);
+	        this.milestone = this.convertValues(source["milestone"], Milestone);
+	        this.parent = this.convertValues(source["parent"], Task);
+	        this.children = this.convertValues(source["children"], Task);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class TaskListResponse {
+	    data: Task[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TaskListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], Task);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class TaskQueryParams {
+	    id_in: number[];
+	    name: string;
+	    name_like: string;
+	    description_like: string;
+	    level: number;
+	    level_gte?: number;
+	    level_lte?: number;
+	    project_id: number;
+	    project_id_in: number[];
+	    milestone_id?: number;
+	    milestone_id_in: number[];
+	    milestone_id_is_null?: boolean;
+	    parent_id?: number;
+	    parent_id_in: number[];
+	    parent_id_is_null?: boolean;
+	    priority: number;
+	    priority_in: number[];
+	    status: number;
+	    status_in: number[];
+	    estimated_effort_gte?: number;
+	    estimated_effort_lte?: number;
+	    // Go type: time
+	    created_at_gte?: any;
+	    // Go type: time
+	    created_at_lte?: any;
+	    // Go type: time
+	    updated_at_gte?: any;
+	    // Go type: time
+	    updated_at_lte?: any;
+	    // Go type: Pagination
+	    pagination?: any;
+	    sorts?: Sort[];
+	
+	    static createFrom(source: any = {}) {
+	        return new TaskQueryParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_in = source["id_in"];
+	        this.name = source["name"];
+	        this.name_like = source["name_like"];
+	        this.description_like = source["description_like"];
+	        this.level = source["level"];
+	        this.level_gte = source["level_gte"];
+	        this.level_lte = source["level_lte"];
+	        this.project_id = source["project_id"];
+	        this.project_id_in = source["project_id_in"];
+	        this.milestone_id = source["milestone_id"];
+	        this.milestone_id_in = source["milestone_id_in"];
+	        this.milestone_id_is_null = source["milestone_id_is_null"];
+	        this.parent_id = source["parent_id"];
+	        this.parent_id_in = source["parent_id_in"];
+	        this.parent_id_is_null = source["parent_id_is_null"];
+	        this.priority = source["priority"];
+	        this.priority_in = source["priority_in"];
+	        this.status = source["status"];
+	        this.status_in = source["status_in"];
+	        this.estimated_effort_gte = source["estimated_effort_gte"];
+	        this.estimated_effort_lte = source["estimated_effort_lte"];
+	        this.created_at_gte = this.convertValues(source["created_at_gte"], null);
+	        this.created_at_lte = this.convertValues(source["created_at_lte"], null);
+	        this.updated_at_gte = this.convertValues(source["updated_at_gte"], null);
+	        this.updated_at_lte = this.convertValues(source["updated_at_lte"], null);
+	        this.pagination = this.convertValues(source["pagination"], null);
+	        this.sorts = this.convertValues(source["sorts"], Sort);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 
