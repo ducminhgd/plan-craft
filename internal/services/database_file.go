@@ -247,7 +247,17 @@ func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 
 	if isMemory {
 		// For memory database, we need to create the new file and copy data
-		// Open the new file database first
+		// If target file exists, remove it first to ensure a clean write
+		if _, err := os.Stat(filePath); err == nil {
+			if err := os.Remove(filePath); err != nil {
+				return "", fmt.Errorf("failed to remove existing file: %w", err)
+			}
+			// Also remove WAL and SHM files if they exist
+			os.Remove(filePath + "-wal")
+			os.Remove(filePath + "-shm")
+		}
+
+		// Open the new file database
 		newDB, err := s.openDatabaseFile(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to create database file: %w", err)
