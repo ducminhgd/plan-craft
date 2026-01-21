@@ -16,6 +16,7 @@ import (
 type App struct {
 	ctx           context.Context
 	dbFileService *services.DatabaseFileService
+	menuService   *services.MenuService
 	*handlers.Handlers
 }
 
@@ -26,9 +27,10 @@ func NewApp() *App {
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
-func (a *App) startup(ctx context.Context, dbFileService *services.DatabaseFileService) {
+func (a *App) startup(ctx context.Context, dbFileService *services.DatabaseFileService, menuService *services.MenuService) {
 	a.ctx = ctx
 	a.dbFileService = dbFileService
+	a.menuService = menuService
 
 	// Initialize database
 	db, err := infrastructures.InitializeDatabase()
@@ -78,7 +80,22 @@ func (a *App) SaveDatabaseAs() (string, error) {
 
 // OpenGuides opens the guides page in the default browser
 func (a *App) OpenGuides() error {
-	return a.dbFileService.OpenGuides()
+	return a.menuService.OpenGuides()
+}
+
+// CloseDatabase closes the current database and switches to draft mode
+func (a *App) CloseDatabase() error {
+	return a.dbFileService.CloseDatabase()
+}
+
+// GetRecentFiles returns the list of recent database files
+func (a *App) GetRecentFiles() []string {
+	return config.GetRecentFiles()
+}
+
+// OpenRecentFile opens a specific database file from the recent files list
+func (a *App) OpenRecentFile(filePath string) error {
+	return a.dbFileService.OpenDatabasePath(filePath)
 }
 
 // wireHandlers creates all repositories, services, and handlers for the given database

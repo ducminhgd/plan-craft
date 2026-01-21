@@ -143,9 +143,13 @@ func Load() Config {
 	return c
 }
 
+// MaxRecentFiles is the maximum number of recent files to store
+const MaxRecentFiles = 10
+
 // Settings represents the application settings stored in YAML format
 type Settings struct {
-	LastDatabasePath string `yaml:"last_database_path"`
+	LastDatabasePath string   `yaml:"last_database_path"`
+	RecentFiles      []string `yaml:"recent_files,omitempty"`
 }
 
 // loadLastDatabasePath reads the persisted database path from the settings file.
@@ -208,4 +212,69 @@ func EnsureLogDirectory(logPath string) error {
 		}
 	}
 	return nil
+}
+
+// LoadSettings loads the settings from the YAML settings file
+func LoadSettings() Settings {
+	settingsPath := GetSettingsFilePath()
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		return Settings{}
+	}
+
+	var settings Settings
+	if err := yaml.Unmarshal(data, &settings); err != nil {
+		return Settings{}
+	}
+
+	return settings
+}
+
+// AddRecentFile adds a file path to the recent files list
+// It moves the file to the front if it already exists and limits to MaxRecentFiles
+func AddRecentFile(filePath string) error {
+	settings := LoadSettings()
+
+	// Remove the file if it already exists in the list
+	newRecent := make([]string, 0, MaxRecentFiles)
+	for _, f := range settings.RecentFiles {
+		if f != filePath {
+			newRecent = append(newRecent, f)
+		}
+	}
+
+	// Add the new file to the front
+	newRecent = append([]string{filePath}, newRecent...)
+
+	// Limit to MaxRecentFiles
+	if len(newRecent) > MaxRecentFiles {
+		newRecent = newRecent[:MaxRecentFiles]
+	}
+
+	settings.RecentFiles = newRecent
+	settings.LastDatabasePath = filePath
+
+	return SaveSettings(settings)
+}
+
+// GetRecentFiles returns the list of recent files, filtering out non-existent files
+func GetRecentFiles() []string {
+	settings := LoadSettings()
+
+	// Filter out files that no longer exist
+	validFiles := make([]string, 0, len(settings.RecentFiles))
+	for _, f := range settings.RecentFiles {
+		if _, err := os.Stat(f); err == nil {
+			validFiles = append(validFiles, f)
+		}
+	}
+
+	return validFiles
+}
+
+// ClearLastDatabasePath clears the last database path from settings
+func ClearLastDatabasePath() error {
+	settings := LoadSettings()
+	settings.LastDatabasePath = ""
+	return SaveSettings(settings)
 }

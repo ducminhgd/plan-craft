@@ -6,12 +6,14 @@ import { GetMilestones, UpdateMilestone, GetProjects } from '../../../wailsjs/go
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import { formatDate } from '../../utils/date';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function MilestoneList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [milestones, setMilestones] = useState<entities.Milestone[]>([]);
   const [projects, setProjects] = useState<entities.Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,11 +85,11 @@ export default function MilestoneList() {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     loadMilestones();
-  }, [currentPage, pageSize, searchText, statusFilter, projectFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, projectFilter, refreshKey]);
 
   const handleToggleStatus = async (milestone: entities.Milestone) => {
     const newStatus = milestone.status === 2 ? 1 : 2;
