@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, Modal, message } from 'antd';
 import type { MenuProps } from 'antd';
 import { Quit, BrowserOpenURL } from '../../wailsjs/runtime/runtime';
-import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath, IsMemoryDatabase, HasUnsavedChanges } from '../../wailsjs/go/services/DatabaseFileService';
+import { OpenDatabase, SaveDatabaseAs, GetCurrentDatabasePath, IsMemoryDatabase, HasUnsavedChanges } from '../../wailsjs/go/main/App';
 import './MenuBar.css';
 
 type MenuItem = Required<MenuProps>['items'][number];

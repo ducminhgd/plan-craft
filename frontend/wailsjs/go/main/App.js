@@ -22,6 +22,10 @@ export function CreateProjectResource(arg1) {
   return window['go']['main']['App']['CreateProjectResource'](arg1);
 }
 
+export function CreateProjectRole(arg1) {
+  return window['go']['main']['App']['CreateProjectRole'](arg1);
+}
+
 export function CreateTask(arg1) {
   return window['go']['main']['App']['CreateTask'](arg1);
 }
@@ -46,6 +50,10 @@ export function DeleteProjectResource(arg1) {
   return window['go']['main']['App']['DeleteProjectResource'](arg1);
 }
 
+export function DeleteProjectRole(arg1) {
+  return window['go']['main']['App']['DeleteProjectRole'](arg1);
+}
+
 export function DeleteTask(arg1) {
   return window['go']['main']['App']['DeleteTask'](arg1);
 }
@@ -60,6 +68,10 @@ export function GetClient(arg1) {
 
 export function GetClients(arg1) {
   return window['go']['main']['App']['GetClients'](arg1);
+}
+
+export function GetCurrentDatabasePath() {
+  return window['go']['main']['App']['GetCurrentDatabasePath']();
 }
 
 export function GetHumanResource(arg1) {
@@ -90,6 +102,18 @@ export function GetProjectResources(arg1) {
   return window['go']['main']['App']['GetProjectResources'](arg1);
 }
 
+export function GetProjectRole(arg1) {
+  return window['go']['main']['App']['GetProjectRole'](arg1);
+}
+
+export function GetProjectRoles(arg1) {
+  return window['go']['main']['App']['GetProjectRoles'](arg1);
+}
+
+export function GetProjectRolesByProject(arg1) {
+  return window['go']['main']['App']['GetProjectRolesByProject'](arg1);
+}
+
 export function GetProjects(arg1) {
   return window['go']['main']['App']['GetProjects'](arg1);
 }
@@ -100,6 +124,26 @@ export function GetTask(arg1) {
 
 export function GetTasks(arg1) {
   return window['go']['main']['App']['GetTasks'](arg1);
+}
+
+export function HasUnsavedChanges() {
+  return window['go']['main']['App']['HasUnsavedChanges']();
+}
+
+export function IsMemoryDatabase() {
+  return window['go']['main']['App']['IsMemoryDatabase']();
+}
+
+export function OpenDatabase() {
+  return window['go']['main']['App']['OpenDatabase']();
+}
+
+export function OpenGuides() {
+  return window['go']['main']['App']['OpenGuides']();
+}
+
+export function SaveDatabaseAs() {
+  return window['go']['main']['App']['SaveDatabaseAs']();
 }
 
 export function UpdateClient(arg1) {
@@ -120,6 +164,10 @@ export function UpdateProject(arg1) {
 
 export function UpdateProjectResource(arg1) {
   return window['go']['main']['App']['UpdateProjectResource'](arg1);
+}
+
+export function UpdateProjectRole(arg1) {
+  return window['go']['main']['App']['UpdateProjectRole'](arg1);
 }
 
 export function UpdateTask(arg1) {
