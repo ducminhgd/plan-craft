@@ -65,6 +65,7 @@ type Project struct {
 	// Relationships
 	Client           *Client            `gorm:"foreignKey:ClientID" json:"client,omitempty"`
 	ProjectResources []*ProjectResource `gorm:"foreignKey:ProjectID" json:"project_resources,omitempty"`
+	ProjectRoles     []*ProjectRole     `gorm:"foreignKey:ProjectID" json:"project_roles,omitempty"`
 }
 
 // TableName returns the table name for the project entity

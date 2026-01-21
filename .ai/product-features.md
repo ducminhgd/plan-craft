@@ -5,9 +5,13 @@ This product has some core features:
 1. Project management
    1. Project metadata (name, type)
    2. Start date, target end date
-   3. Assumptions & constraints
    4. Client (we have client management)
-   5. Project Manager
+   5. Configurations
+      1. Hours Per Day
+      2. Days Per Week
+      3. Working days per week (Monday to Friday by default)
+      4. Timezone
+      5. Currency
 2. Work Breakdown Structure (WBS)
    1. A milestone has:
       1. Name
@@ -85,9 +89,23 @@ This product has some core features:
 3. From estimated man-day or man-month, and the timeline, we can estimate how much people we need to work on the project, and for how long.
 4. From the number of people we need, and the cost per person, we can estimate the cost of the project.
 
-## Roadmap
+## Project plan
 
-1. Version 1: Desktop Application can run on MacOS, Windows, and Linux.
-2. Version 2: Web Application. Can connect to an REST API Server. (will do later)
+### Project Roles
 
-We are implementing version 1 first.
+1. A project has many roles. Each role has a name, and a level (junior, mid, senior, lead), and headcount.
+2. The roles are managed in the Project Form, there is a table called `Roles`.
+3. Unique on name and level, that means each role of each level can only have 1 row.
+4. In the `Project` > `Roles` page, we can add, edit, and delete roles.
+
+### Human Resource planning
+
+1. For each Task, we can assign roles and estimate the effort in man-days. The roles are not limited.
+2. In the Form view of Task, there is a section called `Resources`. It's a table with 3 columns: `#`, `Role`, `Effort`, `Action`.
+   1. `#` is the index of the role. It's auto-incremented when adding a new role.
+   2. `Role` is the name of the role. Selected from a list of roles from the project.
+   3. `Effort` is the effort in man-hours for this role. It's a number input field.
+   4. `Action` is a dropdown with 2 options: `Remove`, and `Edit`.
+   5. There is a button `Add row` to add a new role to the task.
+   6. Unique by roles.
+   7. In the header, there are total roles, total effort in man-hours, and total effort in man-days.
