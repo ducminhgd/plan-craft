@@ -15,3 +15,4 @@
    2. If the user Save the current database as another one (the Save As feature), for both cases from memory to a file or from a file to another file, the application will wire up with new database and update the menu bar with the new database name.
    3. If the user open an existing database, the application will wire up with the new database, and update the menu bar with the new database name, and reload the current page.
    4. If the user close the application when the database is in draft mode, the application will ask if the user want to save the current database before closing.
+   5. When we are using a database, and the user would like to create new one, in `File` menu, there is an option `New... (Ctrl/Cmd + S)`.

@@ -62,6 +62,7 @@ func InitializeDatabase() (*gorm.DB, error) {
 		&entities.HumanResource{},
 		&entities.Project{},
 		&entities.ProjectResource{},
+		&entities.ProjectRole{},
 		&entities.Milestone{},
 		&entities.Task{},
 	)

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Typography, message, Space, Select, DatePicker, InputNumber, Checkbox, Divider } from 'antd';
+import { Form, Input, Button, Typography, message, Space, Select, DatePicker, InputNumber, Checkbox, Divider, Table, Modal } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
-import { GetProject, CreateProject, UpdateProject, GetClients } from '../../../wailsjs/go/main/App';
+import { GetProject, CreateProject, UpdateProject, GetClients, GetProjectRolesByProject, CreateProjectRole, UpdateProjectRole, DeleteProjectRole } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import { DATE_FORMAT, parseDate, toISOString } from '../../utils/date';
 
@@ -37,12 +38,28 @@ const COMMON_TIMEZONES = [
   'Australia/Sydney',
 ];
 
+const ROLE_LEVELS = [
+  { value: 1, label: 'Junior' },
+  { value: 2, label: 'Mid' },
+  { value: 3, label: 'Senior' },
+  { value: 4, label: 'Lead' },
+  { value: 5, label: 'Manager' },
+  { value: 6, label: 'Director' },
+  { value: 7, label: 'VP' },
+  { value: 8, label: 'C-Level' },
+];
+
 export default function ProjectForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [form] = Form.useForm();
+  const [roleForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<entities.Client[]>([]);
+  const [projectRoles, setProjectRoles] = useState<entities.ProjectRole[]>([]);
+  const [roleModalVisible, setRoleModalVisible] = useState(false);
+  const [editingRole, setEditingRole] = useState<entities.ProjectRole | null>(null);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   const isEdit = !!id;
 
@@ -53,6 +70,7 @@ export default function ProjectForm() {
   useEffect(() => {
     if (isEdit) {
       loadProject();
+      loadProjectRoles();
     } else {
       // Reset form and set defaults for new projects
       form.resetFields();
@@ -62,6 +80,7 @@ export default function ProjectForm() {
         days_per_week: 5,
         working_days_per_week: [1, 2, 3, 4, 5], // Monday to Friday
       });
+      setProjectRoles([]);
     }
   }, [id]);
 
@@ -96,6 +115,115 @@ export default function ProjectForm() {
       message.error('Failed to load project');
     }
   };
+
+  const loadProjectRoles = async () => {
+    if (!id) return;
+    try {
+      const result = await GetProjectRolesByProject(Number(id));
+      setProjectRoles(result.data || []);
+    } catch (error) {
+      console.error('Failed to load project roles', error);
+    }
+  };
+
+  const handleAddRole = () => {
+    setEditingRole(null);
+    roleForm.resetFields();
+    roleForm.setFieldsValue({ level: 2, headcount: 1 });
+    setRoleModalVisible(true);
+  };
+
+  const handleEditRole = (role: entities.ProjectRole) => {
+    setEditingRole(role);
+    roleForm.setFieldsValue({
+      name: role.name,
+      level: role.level,
+      headcount: role.headcount,
+    });
+    setRoleModalVisible(true);
+  };
+
+  const handleDeleteRole = (roleId: number) => {
+    Modal.confirm({
+      title: 'Delete Role',
+      content: 'Are you sure you want to delete this role?',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await DeleteProjectRole(roleId);
+          message.success('Role deleted');
+          loadProjectRoles();
+        } catch (error) {
+          message.error('Failed to delete role');
+        }
+      },
+    });
+  };
+
+  const handleRoleSubmit = async (values: any) => {
+    if (!id) return;
+    setRoleLoading(true);
+    try {
+      const roleData: any = {
+        ...values,
+        project_id: Number(id),
+      };
+
+      if (editingRole) {
+        await UpdateProjectRole({ ...roleData, id: editingRole.id });
+        message.success('Role updated');
+      } else {
+        await CreateProjectRole(roleData);
+        message.success('Role created');
+      }
+      setRoleModalVisible(false);
+      loadProjectRoles();
+    } catch (error) {
+      message.error(`Failed to ${editingRole ? 'update' : 'create'} role`);
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
+  const roleColumns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Level',
+      dataIndex: 'level',
+      key: 'level',
+      render: (level: number) => ROLE_LEVELS.find(l => l.value === level)?.label || 'Unknown',
+    },
+    {
+      title: 'Headcount',
+      dataIndex: 'headcount',
+      key: 'headcount',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: entities.ProjectRole) => (
+        <Space>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => handleEditRole(record)}
+          />
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteRole(record.id)}
+          />
+        </Space>
+      ),
+    },
+  ];
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -292,6 +420,87 @@ export default function ProjectForm() {
           </Space>
         </Form.Item>
       </Form>
+
+      {isEdit && (
+        <>
+          <Divider>Project Roles</Divider>
+          <div style={{ marginBottom: 16 }}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddRole}>
+              Add Role
+            </Button>
+          </div>
+          <Table
+            columns={roleColumns}
+            dataSource={projectRoles}
+            rowKey="id"
+            pagination={false}
+            size="small"
+            style={{ maxWidth: 600 }}
+          />
+
+          <Modal
+            title={editingRole ? 'Edit Role' : 'Add Role'}
+            open={roleModalVisible}
+            onCancel={() => setRoleModalVisible(false)}
+            footer={null}
+          >
+            <Form
+              form={roleForm}
+              layout="vertical"
+              onFinish={handleRoleSubmit}
+            >
+              <Form.Item
+                label="Role Name"
+                name="name"
+                rules={[{ required: true, message: 'Please input role name' }]}
+              >
+                <Input placeholder="e.g., Backend Developer, UI Designer" />
+              </Form.Item>
+
+              <Form.Item
+                label="Level"
+                name="level"
+                rules={[{ required: true, message: 'Please select level' }]}
+              >
+                <Select placeholder="Select level">
+                  {ROLE_LEVELS.map(level => (
+                    <Select.Option key={level.value} value={level.value}>
+                      {level.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="Headcount"
+                name="headcount"
+                rules={[
+                  { required: true, message: 'Please input headcount' },
+                  { type: 'number', min: 0, message: 'Headcount must be non-negative' }
+                ]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="Number of people needed"
+                  min={0}
+                  precision={0}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Space>
+                  <Button type="primary" htmlType="submit" loading={roleLoading}>
+                    {editingRole ? 'Update' : 'Create'}
+                  </Button>
+                  <Button onClick={() => setRoleModalVisible(false)}>
+                    Cancel
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Modal>
+        </>
+      )}
     </div>
   );
 }

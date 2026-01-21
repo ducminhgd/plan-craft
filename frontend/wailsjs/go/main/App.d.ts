@@ -12,6 +12,8 @@ export function CreateProject(arg1:entities.Project):Promise<entities.Project>;
 
 export function CreateProjectResource(arg1:entities.ProjectResource):Promise<entities.ProjectResource>;
 
+export function CreateProjectRole(arg1:entities.ProjectRole):Promise<entities.ProjectRole>;
+
 export function CreateTask(arg1:entities.Task):Promise<entities.Task>;
 
 export function DeleteClient(arg1:number):Promise<void>;
@@ -24,6 +26,8 @@ export function DeleteProject(arg1:number):Promise<void>;
 
 export function DeleteProjectResource(arg1:number):Promise<void>;
 
+export function DeleteProjectRole(arg1:number):Promise<void>;
+
 export function DeleteTask(arg1:number):Promise<void>;
 
 export function GetByProjectAndResource(arg1:number,arg2:number):Promise<entities.ProjectResource>;
@@ -31,6 +35,8 @@ export function GetByProjectAndResource(arg1:number,arg2:number):Promise<entitie
 export function GetClient(arg1:number):Promise<entities.Client>;
 
 export function GetClients(arg1:entities.ClientQueryParams):Promise<entities.ClientListResponse>;
+
+export function GetCurrentDatabasePath():Promise<string>;
 
 export function GetHumanResource(arg1:number):Promise<entities.HumanResource>;
 
@@ -46,11 +52,27 @@ export function GetProjectResource(arg1:number):Promise<entities.ProjectResource
 
 export function GetProjectResources(arg1:entities.ProjectResourceQueryParams):Promise<entities.ProjectResourceListResponse>;
 
+export function GetProjectRole(arg1:number):Promise<entities.ProjectRole>;
+
+export function GetProjectRoles(arg1:entities.ProjectRoleQueryParams):Promise<entities.ProjectRoleListResponse>;
+
+export function GetProjectRolesByProject(arg1:number):Promise<entities.ProjectRoleListResponse>;
+
 export function GetProjects(arg1:entities.ProjectQueryParams):Promise<entities.ProjectListResponse>;
 
 export function GetTask(arg1:number):Promise<entities.Task>;
 
 export function GetTasks(arg1:entities.TaskQueryParams):Promise<entities.TaskListResponse>;
+
+export function HasUnsavedChanges():Promise<boolean>;
+
+export function IsMemoryDatabase():Promise<boolean>;
+
+export function OpenDatabase():Promise<string>;
+
+export function OpenGuides():Promise<void>;
+
+export function SaveDatabaseAs():Promise<string>;
 
 export function UpdateClient(arg1:entities.Client):Promise<number>;
 
@@ -61,5 +83,7 @@ export function UpdateMilestone(arg1:entities.Milestone):Promise<number>;
 export function UpdateProject(arg1:entities.Project):Promise<number>;
 
 export function UpdateProjectResource(arg1:entities.ProjectResource):Promise<number>;
+
+export function UpdateProjectRole(arg1:entities.ProjectRole):Promise<number>;
 
 export function UpdateTask(arg1:entities.Task):Promise<number>;

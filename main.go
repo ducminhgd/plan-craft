@@ -56,7 +56,6 @@ func main() {
 		},
 		Bind: []interface{}{
 			app,
-			dbFileService,
 		},
 		Logger:             logger.NewFileLogger(config.Cfg.LogPath),
 		LogLevel:           internal.ConvertWailsLogLevel(config.Cfg.LogLevel),

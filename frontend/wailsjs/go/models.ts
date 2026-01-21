@@ -320,6 +320,52 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class ProjectRole {
+	    id: number;
+	    project_id: number;
+	    name: string;
+	    level: number;
+	    headcount: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    project?: Project;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProjectRole(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.project_id = source["project_id"];
+	        this.name = source["name"];
+	        this.level = source["level"];
+	        this.headcount = source["headcount"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.project = this.convertValues(source["project"], Project);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ProjectResource {
 	    id: number;
 	    project_id: number;
@@ -401,6 +447,7 @@ export namespace entities {
 	    currency: string;
 	    client?: Client;
 	    project_resources?: ProjectResource[];
+	    project_roles?: ProjectRole[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Project(source);
@@ -424,6 +471,7 @@ export namespace entities {
 	        this.currency = source["currency"];
 	        this.client = this.convertValues(source["client"], Client);
 	        this.project_resources = this.convertValues(source["project_resources"], ProjectResource);
+	        this.project_roles = this.convertValues(source["project_roles"], ProjectRole);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -797,6 +845,102 @@ export namespace entities {
 	        this.start_date_lte = this.convertValues(source["start_date_lte"], null);
 	        this.end_date_gte = this.convertValues(source["end_date_gte"], null);
 	        this.end_date_lte = this.convertValues(source["end_date_lte"], null);
+	        this.created_at_gte = this.convertValues(source["created_at_gte"], null);
+	        this.created_at_lte = this.convertValues(source["created_at_lte"], null);
+	        this.updated_at_gte = this.convertValues(source["updated_at_gte"], null);
+	        this.updated_at_lte = this.convertValues(source["updated_at_lte"], null);
+	        this.pagination = this.convertValues(source["pagination"], null);
+	        this.sorts = this.convertValues(source["sorts"], Sort);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class ProjectRoleListResponse {
+	    data: ProjectRole[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProjectRoleListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], ProjectRole);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ProjectRoleQueryParams {
+	    id_in: number[];
+	    project_id: number;
+	    project_id_in: number[];
+	    name: string;
+	    name_like: string;
+	    level: number;
+	    level_in: number[];
+	    headcount_gte?: number;
+	    headcount_lte?: number;
+	    // Go type: time
+	    created_at_gte?: any;
+	    // Go type: time
+	    created_at_lte?: any;
+	    // Go type: time
+	    updated_at_gte?: any;
+	    // Go type: time
+	    updated_at_lte?: any;
+	    // Go type: Pagination
+	    pagination?: any;
+	    sorts?: Sort[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ProjectRoleQueryParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_in = source["id_in"];
+	        this.project_id = source["project_id"];
+	        this.project_id_in = source["project_id_in"];
+	        this.name = source["name"];
+	        this.name_like = source["name_like"];
+	        this.level = source["level"];
+	        this.level_in = source["level_in"];
+	        this.headcount_gte = source["headcount_gte"];
+	        this.headcount_lte = source["headcount_lte"];
 	        this.created_at_gte = this.convertValues(source["created_at_gte"], null);
 	        this.created_at_lte = this.convertValues(source["created_at_lte"], null);
 	        this.updated_at_gte = this.convertValues(source["updated_at_gte"], null);

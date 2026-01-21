@@ -14,7 +14,8 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx           context.Context
+	dbFileService *services.DatabaseFileService
 	*handlers.Handlers
 }
 
@@ -27,6 +28,7 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context, dbFileService *services.DatabaseFileService) {
 	a.ctx = ctx
+	a.dbFileService = dbFileService
 
 	// Initialize database
 	db, err := infrastructures.InitializeDatabase()
@@ -49,6 +51,36 @@ func (a *App) startup(ctx context.Context, dbFileService *services.DatabaseFileS
 	})
 }
 
+// GetCurrentDatabasePath returns the current database file path
+func (a *App) GetCurrentDatabasePath() string {
+	return a.dbFileService.GetCurrentDatabasePath()
+}
+
+// IsMemoryDatabase returns true if the current database is in-memory (draft mode)
+func (a *App) IsMemoryDatabase() bool {
+	return a.dbFileService.IsMemoryDatabase()
+}
+
+// HasUnsavedChanges returns true if in draft mode and there are records in the database
+func (a *App) HasUnsavedChanges() bool {
+	return a.dbFileService.HasUnsavedChanges()
+}
+
+// OpenDatabase opens a SQLite database file using a file dialog
+func (a *App) OpenDatabase() (string, error) {
+	return a.dbFileService.OpenDatabase()
+}
+
+// SaveDatabaseAs saves the current database to a new file and switches to it
+func (a *App) SaveDatabaseAs() (string, error) {
+	return a.dbFileService.SaveDatabaseAs()
+}
+
+// OpenGuides opens the guides page in the default browser
+func (a *App) OpenGuides() error {
+	return a.dbFileService.OpenGuides()
+}
+
 // wireHandlers creates all repositories, services, and handlers for the given database
 func (a *App) wireHandlers(ctx context.Context, db *gorm.DB) {
 	clientRepo := repositories.NewClientRepository(db)
@@ -67,6 +99,10 @@ func (a *App) wireHandlers(ctx context.Context, db *gorm.DB) {
 	projectResourceService := services.NewProjectResourceService(projectResourceRepo)
 	projectResourceHandler := handlers.NewProjectResourceHandler(ctx, projectResourceService)
 
+	projectRoleRepo := repositories.NewProjectRoleRepository(db)
+	projectRoleService := services.NewProjectRoleService(projectRoleRepo)
+	projectRoleHandler := handlers.NewProjectRoleHandler(ctx, projectRoleService)
+
 	milestoneRepo := repositories.NewMilestoneRepository(db)
 	milestoneService := services.NewMilestoneService(milestoneRepo)
 	milestoneHandler := handlers.NewMilestoneHandler(ctx, milestoneService)
@@ -76,5 +112,5 @@ func (a *App) wireHandlers(ctx context.Context, db *gorm.DB) {
 	taskHandler := handlers.NewTaskHandler(ctx, taskService)
 
 	// Update handlers container with new handlers
-	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler, projectHandler, projectResourceHandler, milestoneHandler, taskHandler)
+	a.Handlers = handlers.NewHandlers(clientHandler, hrHandler, projectHandler, projectResourceHandler, projectRoleHandler, milestoneHandler, taskHandler)
 }
