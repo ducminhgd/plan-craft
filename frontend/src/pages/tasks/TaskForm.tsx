@@ -27,6 +27,7 @@ export default function TaskForm() {
     if (isEdit) {
       loadTask();
     } else {
+      // Reset form and project context for create mode
       form.resetFields();
       form.setFieldsValue({
         status: 1, // To Do
@@ -34,6 +35,7 @@ export default function TaskForm() {
         level: 1,
         estimated_effort: 0,
       });
+      setSelectedProjectId(undefined);
     }
   }, [id]);
 
