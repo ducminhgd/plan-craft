@@ -105,8 +105,15 @@ export default function TaskList() {
       }
 
       const result = await GetTasks(params);
+      const newTotal = result.total || 0;
       setTasks(result.data || []);
-      setTotal(result.total || 0);
+      setTotal(newTotal);
+
+      // Clamp currentPage if it exceeds total pages after filtering
+      const totalPages = Math.ceil(newTotal / pageSize);
+      if (totalPages > 0 && currentPage > totalPages) {
+        setCurrentPage(totalPages);
+      }
     } catch (error) {
       message.error('Failed to load tasks');
     } finally {
@@ -143,6 +150,11 @@ export default function TaskList() {
         }
       },
     });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchText(value);
+    setCurrentPage(1);
   };
 
   const handleSearch = (value: string) => {
@@ -391,7 +403,7 @@ export default function TaskList() {
         <Search
           placeholder="Search by name or description"
           onSearch={handleSearch}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
           allowClear
         />

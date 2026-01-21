@@ -117,10 +117,11 @@ export default function TaskForm() {
 
   const handleProjectChange = (value: number) => {
     setSelectedProjectId(value);
-    // Reset milestone and parent when project changes
+    // Reset milestone, parent, and level when project changes
     form.setFieldsValue({
       milestone_id: undefined,
       parent_id: undefined,
+      level: 1,
     });
   };
 
