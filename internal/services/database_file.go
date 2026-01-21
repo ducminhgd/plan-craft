@@ -181,30 +181,14 @@ func (s *DatabaseFileService) OpenDatabase() (string, error) {
 	return filePath, nil
 }
 
-// getSettingsFilePath returns the path to the settings file
-func getSettingsFilePath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ".plan-craft-settings"
-	}
-	return filepath.Join(homeDir, ".plan-craft", "settings")
-}
-
 // saveLastDatabasePath persists the database path for the next app launch
 func (s *DatabaseFileService) saveLastDatabasePath(dbPath string) error {
-	settingsPath := getSettingsFilePath()
-
-	// Create settings directory if it doesn't exist
-	settingsDir := filepath.Dir(settingsPath)
-	if err := os.MkdirAll(settingsDir, 0755); err != nil {
-		return fmt.Errorf("failed to create settings directory: %w", err)
+	settings := config.Settings{
+		LastDatabasePath: dbPath,
 	}
-
-	// Write the database path to the settings file
-	if err := os.WriteFile(settingsPath, []byte(dbPath), 0644); err != nil {
-		return fmt.Errorf("failed to write settings file: %w", err)
+	if err := config.SaveSettings(settings); err != nil {
+		return fmt.Errorf("failed to save settings: %w", err)
 	}
-
 	return nil
 }
 
