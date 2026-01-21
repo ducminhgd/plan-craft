@@ -22,6 +22,10 @@ export function CreateProjectResource(arg1) {
   return window['go']['main']['App']['CreateProjectResource'](arg1);
 }
 
+export function CreateTask(arg1) {
+  return window['go']['main']['App']['CreateTask'](arg1);
+}
+
 export function DeleteClient(arg1) {
   return window['go']['main']['App']['DeleteClient'](arg1);
 }
@@ -40,6 +44,10 @@ export function DeleteProject(arg1) {
 
 export function DeleteProjectResource(arg1) {
   return window['go']['main']['App']['DeleteProjectResource'](arg1);
+}
+
+export function DeleteTask(arg1) {
+  return window['go']['main']['App']['DeleteTask'](arg1);
 }
 
 export function GetByProjectAndResource(arg1, arg2) {
@@ -86,6 +94,14 @@ export function GetProjects(arg1) {
   return window['go']['main']['App']['GetProjects'](arg1);
 }
 
+export function GetTask(arg1) {
+  return window['go']['main']['App']['GetTask'](arg1);
+}
+
+export function GetTasks(arg1) {
+  return window['go']['main']['App']['GetTasks'](arg1);
+}
+
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
 }
@@ -104,4 +120,8 @@ export function UpdateProject(arg1) {
 
 export function UpdateProjectResource(arg1) {
   return window['go']['main']['App']['UpdateProjectResource'](arg1);
+}
+
+export function UpdateTask(arg1) {
+  return window['go']['main']['App']['UpdateTask'](arg1);
 }

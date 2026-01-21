@@ -11,6 +11,8 @@ import ResourceAllocationList from '../pages/resource-allocations/ResourceAlloca
 import ResourceAllocationForm from '../pages/resource-allocations/ResourceAllocationForm';
 import MilestoneList from '../pages/milestones/MilestoneList';
 import MilestoneForm from '../pages/milestones/MilestoneForm';
+import TaskList from '../pages/tasks/TaskList';
+import TaskForm from '../pages/tasks/TaskForm';
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +35,9 @@ export const router = createBrowserRouter([
       { path: 'milestones', element: <MilestoneList /> },
       { path: 'milestones/new', element: <MilestoneForm /> },
       { path: 'milestones/:id', element: <MilestoneForm /> },
+      { path: 'tasks', element: <TaskList /> },
+      { path: 'tasks/new', element: <TaskForm /> },
+      { path: 'tasks/:id', element: <TaskForm /> },
     ],
   },
 ]);

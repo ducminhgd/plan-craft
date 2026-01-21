@@ -13,6 +13,7 @@ import {
   AppstoreOutlined,
   ApartmentOutlined,
   ScheduleOutlined,
+  CheckSquareOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -128,6 +129,23 @@ export default function Sidebar() {
             },
           ],
         },
+        {
+          key: 'tasks',
+          icon: <CheckSquareOutlined />,
+          label: 'Tasks',
+          children: [
+            {
+              key: '/tasks',
+              icon: <UnorderedListOutlined />,
+              label: 'List',
+            },
+            {
+              key: '/tasks/new',
+              icon: <PlusOutlined />,
+              label: 'Add New',
+            },
+          ],
+        },
       ],
     },
     {
@@ -168,7 +186,7 @@ export default function Sidebar() {
             theme="dark"
             mode="inline"
             selectedKeys={[location.pathname]}
-            defaultOpenKeys={['clients', 'resources', 'human-resources', 'projects', 'project-plan', 'milestones', 'resource-allocations']}
+            defaultOpenKeys={['clients', 'resources', 'human-resources', 'projects', 'project-plan', 'milestones', 'tasks', 'resource-allocations']}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
             style={{ textAlign: 'left' }}
