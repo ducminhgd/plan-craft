@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { GetHumanResources, UpdateHumanResource } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function HumanResourceList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [humanResources, setHumanResources] = useState<entities.HumanResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -59,7 +61,7 @@ export default function HumanResourceList() {
 
   useEffect(() => {
     loadHumanResources();
-  }, [currentPage, pageSize, searchText, statusFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, refreshKey]);
 
   const handleToggleStatus = async (hr: entities.HumanResource) => {
     const newStatus = hr.status === 2 ? 1 : 2;

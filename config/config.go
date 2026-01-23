@@ -1,13 +1,11 @@
 package config
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/sethvargo/go-envconfig"
+	"gopkg.in/yaml.v3"
 )
 
 // MemoryDSN is the special DSN for in-memory SQLite database (draft mode)
@@ -34,41 +32,75 @@ func getDefaultLogPath() string {
 	return filepath.Join(homeDir, ".plan-craft", "logs", "plancraft.log")
 }
 
-// getDefaultDBPath returns the default database path in user's home directory
-func getDefaultDBPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		// Fallback to current directory if home dir is not available
-		return "data/plancraft.db"
-	}
-	return filepath.Join(homeDir, ".plan-craft", "data", "plancraft.db")
-}
-
 type Config struct {
-	AppName    string   `env:"APP_NAME, default=plan-craft"`
-	Environemt string   `env:"ENV, default=local"`
-	DB         DBConfig `env:", prefix=DB_"`
-	LogPath    string   `env:"LOG_PATH"`
-	LogLevel   string   `env:"LOG_LEVEL, default=WARN"`
+	AppName     string   `yaml:"app_name"`
+	Environment string   `yaml:"environment"`
+	DB          DBConfig `yaml:"database"`
+	LogPath     string   `yaml:"log_path"`
+	LogLevel    string   `yaml:"log_level"`
 }
 
 type DBConfig struct {
-	DSN         string `env:"DSN"`
-	JournalMode string `env:"JOURNAL_MODE, default=WAL"`
-	Synchronous string `env:"SYNCHRONOUS, default=NORMAL"`
-	ForeignKeys string `env:"FOREIGN_KEYS, default=ON"`
-	BusyTimeout string `env:"BUSY_TIMEOUT, default=5000"`
-	CacheSize   string `env:"CACHE_SIZE, default=-64000"`
-	TempStore   string `env:"TEMP_STORE, default=MEMORY"`
-	AutoVacuum  string `env:"AUTO_VACUUM, default=INCREMENTAL"`
+	DSN         string `yaml:"dsn"`
+	JournalMode string `yaml:"journal_mode"`
+	Synchronous string `yaml:"synchronous"`
+	ForeignKeys string `yaml:"foreign_keys"`
+	BusyTimeout string `yaml:"busy_timeout"`
+	CacheSize   string `yaml:"cache_size"`
+	TempStore   string `yaml:"temp_store"`
+	AutoVacuum  string `yaml:"auto_vacuum"`
 }
 
-func Load() Config {
-	ctx := context.Background()
+// getConfigFilePaths returns the list of paths to search for the config file
+func getConfigFilePaths() []string {
+	paths := []string{
+		"config.yaml",
+		"config.yml",
+	}
 
-	var c Config
-	if err := envconfig.Process(ctx, &c); err != nil {
-		logger.ErrorContext(ctx, "Failed to load config", slog.Any("error", err))
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		paths = append(paths,
+			filepath.Join(homeDir, ".plan-craft", "config.yaml"),
+			filepath.Join(homeDir, ".plan-craft", "config.yml"),
+		)
+	}
+
+	return paths
+}
+
+// Load loads the configuration from YAML file
+func Load() Config {
+	c := Config{
+		AppName:     "plan-craft",
+		Environment: "local",
+		LogLevel:    "WARN",
+		DB: DBConfig{
+			JournalMode: "WAL",
+			Synchronous: "NORMAL",
+			ForeignKeys: "ON",
+			BusyTimeout: "5000",
+			CacheSize:   "-64000",
+			TempStore:   "MEMORY",
+			AutoVacuum:  "INCREMENTAL",
+		},
+	}
+
+	// Try to load config from file
+	configPaths := getConfigFilePaths()
+	for _, configPath := range configPaths {
+		data, err := os.ReadFile(configPath)
+		if err != nil {
+			continue
+		}
+
+		if err := yaml.Unmarshal(data, &c); err != nil {
+			logger.Error("Failed to parse config file", slog.String("path", configPath), slog.Any("error", err))
+			continue
+		}
+
+		// Successfully loaded config
+		break
 	}
 
 	// Set defaults for paths that need home directory expansion
@@ -85,32 +117,90 @@ func Load() Config {
 		}
 	}
 
+	// Ensure DB config defaults are set if not specified in YAML
+	if c.DB.JournalMode == "" {
+		c.DB.JournalMode = "WAL"
+	}
+	if c.DB.Synchronous == "" {
+		c.DB.Synchronous = "NORMAL"
+	}
+	if c.DB.ForeignKeys == "" {
+		c.DB.ForeignKeys = "ON"
+	}
+	if c.DB.BusyTimeout == "" {
+		c.DB.BusyTimeout = "5000"
+	}
+	if c.DB.CacheSize == "" {
+		c.DB.CacheSize = "-64000"
+	}
+	if c.DB.TempStore == "" {
+		c.DB.TempStore = "MEMORY"
+	}
+	if c.DB.AutoVacuum == "" {
+		c.DB.AutoVacuum = "INCREMENTAL"
+	}
+
 	return c
+}
+
+// MaxRecentFiles is the maximum number of recent files to store
+const MaxRecentFiles = 10
+
+// Settings represents the application settings stored in YAML format
+type Settings struct {
+	LastDatabasePath string   `yaml:"last_database_path"`
+	RecentFiles      []string `yaml:"recent_files,omitempty"`
 }
 
 // loadLastDatabasePath reads the persisted database path from the settings file.
 // Returns empty string if no settings file exists or on error.
 func loadLastDatabasePath() string {
-	settingsPath := getSettingsFilePath()
+	settingsPath := GetSettingsFilePath()
 	data, err := os.ReadFile(settingsPath)
 	if err != nil {
 		return ""
 	}
-	path := strings.TrimSpace(string(data))
-	// Validate the file still exists before using it
-	if _, err := os.Stat(path); err != nil {
+
+	var settings Settings
+	if err := yaml.Unmarshal(data, &settings); err != nil {
 		return ""
+	}
+
+	path := settings.LastDatabasePath
+	// Validate the file still exists before using it
+	if path != "" {
+		if _, err := os.Stat(path); err != nil {
+			return ""
+		}
 	}
 	return path
 }
 
-// getSettingsFilePath returns the path to the settings file
-func getSettingsFilePath() string {
+// GetSettingsFilePath returns the path to the settings file
+func GetSettingsFilePath() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return ".plan-craft-settings"
+		return ".plan-craft-settings.yaml"
 	}
-	return filepath.Join(homeDir, ".plan-craft", "settings")
+	return filepath.Join(homeDir, ".plan-craft", "settings.yaml")
+}
+
+// SaveSettings saves the application settings to the YAML settings file
+func SaveSettings(settings Settings) error {
+	settingsPath := GetSettingsFilePath()
+
+	// Create settings directory if it doesn't exist
+	settingsDir := filepath.Dir(settingsPath)
+	if err := os.MkdirAll(settingsDir, 0755); err != nil {
+		return err
+	}
+
+	data, err := yaml.Marshal(&settings)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(settingsPath, data, 0644)
 }
 
 // EnsureLogDirectory creates the log directory if it doesn't exist
@@ -122,4 +212,69 @@ func EnsureLogDirectory(logPath string) error {
 		}
 	}
 	return nil
+}
+
+// LoadSettings loads the settings from the YAML settings file
+func LoadSettings() Settings {
+	settingsPath := GetSettingsFilePath()
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		return Settings{}
+	}
+
+	var settings Settings
+	if err := yaml.Unmarshal(data, &settings); err != nil {
+		return Settings{}
+	}
+
+	return settings
+}
+
+// AddRecentFile adds a file path to the recent files list
+// It moves the file to the front if it already exists and limits to MaxRecentFiles
+func AddRecentFile(filePath string) error {
+	settings := LoadSettings()
+
+	// Remove the file if it already exists in the list
+	newRecent := make([]string, 0, MaxRecentFiles)
+	for _, f := range settings.RecentFiles {
+		if f != filePath {
+			newRecent = append(newRecent, f)
+		}
+	}
+
+	// Add the new file to the front
+	newRecent = append([]string{filePath}, newRecent...)
+
+	// Limit to MaxRecentFiles
+	if len(newRecent) > MaxRecentFiles {
+		newRecent = newRecent[:MaxRecentFiles]
+	}
+
+	settings.RecentFiles = newRecent
+	settings.LastDatabasePath = filePath
+
+	return SaveSettings(settings)
+}
+
+// GetRecentFiles returns the list of recent files, filtering out non-existent files
+func GetRecentFiles() []string {
+	settings := LoadSettings()
+
+	// Filter out files that no longer exist
+	validFiles := make([]string, 0, len(settings.RecentFiles))
+	for _, f := range settings.RecentFiles {
+		if _, err := os.Stat(f); err == nil {
+			validFiles = append(validFiles, f)
+		}
+	}
+
+	return validFiles
+}
+
+// ClearLastDatabasePath clears the last database path from settings
+func ClearLastDatabasePath() error {
+	settings := LoadSettings()
+	settings.LastDatabasePath = ""
+	return SaveSettings(settings)
 }

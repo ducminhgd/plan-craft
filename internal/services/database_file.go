@@ -178,33 +178,17 @@ func (s *DatabaseFileService) OpenDatabase() (string, error) {
 		callback(newDB)
 	}
 
+	// Emit event to notify frontend that the database has changed
+	runtime.EventsEmit(s.ctx, "database:changed", filePath, false)
+
 	return filePath, nil
 }
 
-// getSettingsFilePath returns the path to the settings file
-func getSettingsFilePath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ".plan-craft-settings"
-	}
-	return filepath.Join(homeDir, ".plan-craft", "settings")
-}
-
-// saveLastDatabasePath persists the database path for the next app launch
+// saveLastDatabasePath persists the database path for the next app launch and adds to recent files
 func (s *DatabaseFileService) saveLastDatabasePath(dbPath string) error {
-	settingsPath := getSettingsFilePath()
-
-	// Create settings directory if it doesn't exist
-	settingsDir := filepath.Dir(settingsPath)
-	if err := os.MkdirAll(settingsDir, 0755); err != nil {
-		return fmt.Errorf("failed to create settings directory: %w", err)
+	if err := config.AddRecentFile(dbPath); err != nil {
+		return fmt.Errorf("failed to save settings: %w", err)
 	}
-
-	// Write the database path to the settings file
-	if err := os.WriteFile(settingsPath, []byte(dbPath), 0644); err != nil {
-		return fmt.Errorf("failed to write settings file: %w", err)
-	}
-
 	return nil
 }
 
@@ -263,7 +247,17 @@ func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 
 	if isMemory {
 		// For memory database, we need to create the new file and copy data
-		// Open the new file database first
+		// If target file exists, remove it first to ensure a clean write
+		if _, err := os.Stat(filePath); err == nil {
+			if err := os.Remove(filePath); err != nil {
+				return "", fmt.Errorf("failed to remove existing file: %w", err)
+			}
+			// Also remove WAL and SHM files if they exist
+			os.Remove(filePath + "-wal")
+			os.Remove(filePath + "-shm")
+		}
+
+		// Open the new file database
 		newDB, err := s.openDatabaseFile(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to create database file: %w", err)
@@ -303,6 +297,9 @@ func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 		if callback != nil {
 			callback(newDB)
 		}
+
+		// Emit event to notify frontend that the database has changed
+		runtime.EventsEmit(s.ctx, "database:changed", filePath, false)
 	} else {
 		// For file-based database, use VACUUM INTO to create a consistent copy
 		// VACUUM INTO creates a new database file with all data from the current database.
@@ -342,6 +339,9 @@ func (s *DatabaseFileService) SaveDatabaseAs() (string, error) {
 		if callback != nil {
 			callback(newDB)
 		}
+
+		// Emit event to notify frontend that the database has changed
+		runtime.EventsEmit(s.ctx, "database:changed", filePath, false)
 	}
 
 	return filePath, nil
@@ -481,14 +481,171 @@ func (s *DatabaseFileService) openDatabaseFile(path string) (*gorm.DB, error) {
 	return db, nil
 }
 
-// OpenGuides opens the guides page in the default browser
-func (s *DatabaseFileService) OpenGuides() error {
+// OpenDatabasePath opens a specific database file path.
+// This is used for opening recent files.
+func (s *DatabaseFileService) OpenDatabasePath(filePath string) error {
 	if s.ctx == nil {
 		return fmt.Errorf("context not initialized")
 	}
 
-	// TODO: Replace with actual guides URL when available
-	guidesURL := "https://github.com/ducminhgd/plan-craft/wiki"
-	runtime.BrowserOpenURL(s.ctx, guidesURL)
+	// Validate that the file exists
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("file not found: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("path is a directory, not a file")
+	}
+
+	// Open the new database
+	newDB, err := s.openDatabaseFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+
+	// Close the old database connection
+	s.mu.Lock()
+	oldDB := s.db
+	s.db = newDB
+	s.currentDBPath = filePath
+	s.isMemoryDB = false
+	callback := s.onDBChanged
+	s.mu.Unlock()
+
+	if oldDB != nil {
+		if sqlDB, err := oldDB.DB(); err == nil {
+			sqlDB.Close()
+		}
+	}
+
+	// Persist the selected database path for next app launch
+	if err := s.saveLastDatabasePath(filePath); err != nil {
+		fmt.Printf("Warning: failed to save database path: %v\n", err)
+	}
+
+	// Notify the app to re-wire dependencies with the new database
+	if callback != nil {
+		callback(newDB)
+	}
+
+	// Emit event to notify frontend that the database has changed
+	runtime.EventsEmit(s.ctx, "database:changed", filePath, false)
+
 	return nil
 }
+
+// CloseDatabase closes the current database and switches to draft mode (memory database).
+// If already in draft mode, clears all data in the memory database.
+func (s *DatabaseFileService) CloseDatabase() error {
+	if s.ctx == nil {
+		return fmt.Errorf("context not initialized")
+	}
+
+	s.mu.Lock()
+	isMemory := s.isMemoryDB
+	db := s.db
+	s.mu.Unlock()
+
+	if db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
+	if isMemory {
+		// Already in draft mode - clear all data
+		if err := s.clearMemoryDatabase(db); err != nil {
+			return fmt.Errorf("failed to clear database: %w", err)
+		}
+		// Emit event to notify frontend that the database was cleared
+		runtime.EventsEmit(s.ctx, "database:changed", config.MemoryDSN, true)
+		return nil
+	}
+
+	// Close the file database and create a new memory database
+	newDB, err := s.openMemoryDatabase()
+	if err != nil {
+		return fmt.Errorf("failed to create memory database: %w", err)
+	}
+
+	s.mu.Lock()
+	oldDB := s.db
+	s.db = newDB
+	s.currentDBPath = config.MemoryDSN
+	s.isMemoryDB = true
+	callback := s.onDBChanged
+	s.mu.Unlock()
+
+	// Close old file database
+	if oldDB != nil {
+		if sqlDB, err := oldDB.DB(); err == nil {
+			sqlDB.Close()
+		}
+	}
+
+	// Clear the last database path from settings
+	if err := config.ClearLastDatabasePath(); err != nil {
+		fmt.Printf("Warning: failed to clear database path: %v\n", err)
+	}
+
+	// Notify the app to re-wire dependencies with the new database
+	if callback != nil {
+		callback(newDB)
+	}
+
+	// Emit event to notify frontend that the database has changed to draft mode
+	runtime.EventsEmit(s.ctx, "database:changed", config.MemoryDSN, true)
+
+	return nil
+}
+
+// clearMemoryDatabase clears all data from all tables in the memory database
+func (s *DatabaseFileService) clearMemoryDatabase(db *gorm.DB) error {
+	// Delete all records from each entity table
+	// Order matters due to foreign key constraints - delete child tables first
+	if err := db.Exec("DELETE FROM project_resources").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM projects").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM human_resources").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM clients").Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// openMemoryDatabase opens a new in-memory SQLite database
+func (s *DatabaseFileService) openMemoryDatabase() (*gorm.DB, error) {
+	cfg := config.Cfg
+
+	// Build DSN with pragma settings for memory database
+	dsn := fmt.Sprintf("%s&_journal_mode=MEMORY&_synchronous=%s&_foreign_keys=%s&_busy_timeout=%s&_cache_size=%s&_temp_store=%s",
+		config.MemoryDSN,
+		cfg.DB.Synchronous,
+		cfg.DB.ForeignKeys,
+		cfg.DB.BusyTimeout,
+		cfg.DB.CacheSize,
+		cfg.DB.TempStore,
+	)
+
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to open memory database: %w", err)
+	}
+
+	// Auto-migrate entities
+	err = db.AutoMigrate(
+		&entities.Client{},
+		&entities.HumanResource{},
+		&entities.Project{},
+		&entities.ProjectResource{},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to auto-migrate: %w", err)
+	}
+
+	return db, nil
+}
+

@@ -1,0 +1,22 @@
+# Plan Craft Configuration
+# Copy this file to config.yaml and modify as needed
+
+# Application Configuration
+app_name: plan-craft
+environment: local
+
+# Logging Configuration
+log_path: ""  # Empty for default: ~/.plan-craft/logs/plancraft.log
+log_level: WARN  # Options: DEBUG, INFO, WARN, ERROR
+
+# Database Configuration
+database:
+  dsn: ""  # Empty for default: memory database (draft mode) or last opened file
+  # SQLite pragma settings
+  journal_mode: WAL
+  synchronous: NORMAL
+  foreign_keys: "ON"
+  busy_timeout: "5000"
+  cache_size: "-64000"
+  temp_store: MEMORY
+  auto_vacuum: INCREMENTAL

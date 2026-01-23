@@ -6,12 +6,14 @@ import { GetProjectResources, UpdateProjectResource, DeleteProjectResource, GetP
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import { formatDate } from '../../utils/date';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function ResourceAllocationList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [allocations, setAllocations] = useState<entities.ProjectResource[]>([]);
   const [projects, setProjects] = useState<entities.Project[]>([]);
   const [humanResources, setHumanResources] = useState<entities.HumanResource[]>([]);
@@ -107,11 +109,11 @@ export default function ResourceAllocationList() {
   useEffect(() => {
     loadProjects();
     loadHumanResources();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     loadAllocations();
-  }, [currentPage, pageSize, searchText, statusFilter, projectFilter, humanResourceFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, projectFilter, humanResourceFilter, refreshKey]);
 
   const handleToggleStatus = async (allocation: entities.ProjectResource) => {
     const newStatus = allocation.status === 2 ? 1 : 2;

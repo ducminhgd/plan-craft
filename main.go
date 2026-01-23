@@ -9,7 +9,6 @@ import (
 	"github.com/ducminhgd/plan-craft/internal/services"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
-	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
@@ -33,8 +32,8 @@ func main() {
 	menuService := services.NewMenuService()
 	menuService.SetDatabaseFileService(dbFileService)
 
-	// Menu will be built in OnStartup after context is available
-	var appMenu *menu.Menu
+	// Build menu before wails.Run() - context will be set in callbacks
+	appMenu := menuService.BuildApplicationMenu(nil)
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -48,11 +47,11 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		Menu:             appMenu,
 		OnStartup: func(ctx context.Context) {
-			// Initialize app (including database) and database file service
-			app.startup(ctx, dbFileService)
+			// Update menu service with context for runtime operations
+			menuService.SetContext(ctx)
 
-			// Build menu after context is available
-			appMenu = menuService.BuildApplicationMenu(ctx)
+			// Initialize app (including database) and database file service
+			app.startup(ctx, dbFileService, menuService)
 		},
 		Bind: []interface{}{
 			app,

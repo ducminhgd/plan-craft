@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { GetTasks, DeleteTask, GetProjects, GetMilestones } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function TaskList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [tasks, setTasks] = useState<entities.Task[]>([]);
   const [projects, setProjects] = useState<entities.Project[]>([]);
   const [milestones, setMilestones] = useState<entities.Milestone[]>([]);
@@ -123,15 +125,15 @@ export default function TaskList() {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     loadMilestones();
-  }, [projectFilter]);
+  }, [projectFilter, refreshKey]);
 
   useEffect(() => {
     loadTasks();
-  }, [currentPage, pageSize, searchText, statusFilter, priorityFilter, projectFilter, milestoneFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, priorityFilter, projectFilter, milestoneFilter, refreshKey]);
 
   const handleDelete = async (task: entities.Task) => {
     Modal.confirm({

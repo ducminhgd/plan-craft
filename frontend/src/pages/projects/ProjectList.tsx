@@ -6,12 +6,14 @@ import { GetProjects, UpdateProject, GetClients } from '../../../wailsjs/go/main
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import { formatDate } from '../../utils/date';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function ProjectList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [projects, setProjects] = useState<entities.Project[]>([]);
   const [clients, setClients] = useState<entities.Client[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,11 +85,11 @@ export default function ProjectList() {
 
   useEffect(() => {
     loadClients();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     loadProjects();
-  }, [currentPage, pageSize, searchText, statusFilter, clientFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, clientFilter, refreshKey]);
 
   const handleToggleStatus = async (project: entities.Project) => {
     const newStatus = project.status === 2 ? 1 : 2;

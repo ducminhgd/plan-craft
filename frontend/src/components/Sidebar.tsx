@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Tooltip } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -14,7 +14,9 @@ import {
   ApartmentOutlined,
   ScheduleOutlined,
   CheckSquareOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
+import { useDatabase } from '../contexts/DatabaseContext';
 
 const { Sider } = Layout;
 
@@ -34,6 +36,8 @@ export default function Sidebar() {
     const saved = localStorage.getItem(PIN_STORAGE_KEY);
     return saved ? JSON.parse(saved) : false;
   });
+
+  const { currentDbPath, isDraft } = useDatabase();
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed));
@@ -178,9 +182,33 @@ export default function Sidebar() {
       style={{ height: '100vh', position: 'sticky', top: 0, left: 0 }}
     >
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,.2)', flexShrink: 0 }}>
-          {/* Logo placeholder */}
-        </div>
+        <Tooltip title={isDraft ? 'Unsaved draft - use Save As to persist' : currentDbPath} placement="right">
+          <div style={{
+            minHeight: 32,
+            margin: 16,
+            padding: '8px',
+            background: 'rgba(255,255,255,.2)',
+            flexShrink: 0,
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            overflow: 'hidden',
+          }}>
+            <DatabaseOutlined style={{ color: isDraft ? '#faad14' : '#52c41a', fontSize: 16, flexShrink: 0 }} />
+            {!collapsed && (
+              <span style={{
+                color: isDraft ? '#faad14' : '#fff',
+                fontSize: 12,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {isDraft ? 'Draft' : currentDbPath.split(/[/\\]/).pop() || 'No database'}
+              </span>
+            )}
+          </div>
+        </Tooltip>
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
           <Menu
             theme="dark"

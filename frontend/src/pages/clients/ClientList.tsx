@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { GetClients, UpdateClient } from '../../../wailsjs/go/main/App';
 import { entities } from '../../../wailsjs/go/models';
 import type { TableRowSelection } from 'antd/es/table/interface';
+import { useDatabase } from '../../contexts/DatabaseContext';
 
 const { Title } = Typography;
 const { Search } = Input;
 
 export default function ClientList() {
   const navigate = useNavigate();
+  const { refreshKey } = useDatabase();
   const [clients, setClients] = useState<entities.Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -62,7 +64,7 @@ export default function ClientList() {
 
   useEffect(() => {
     loadClients();
-  }, [currentPage, pageSize, searchText, statusFilter]);
+  }, [currentPage, pageSize, searchText, statusFilter, refreshKey]);
 
   const handleToggleStatus = async (client: entities.Client) => {
     const newStatus = client.status === 2 ? 1 : 2;
