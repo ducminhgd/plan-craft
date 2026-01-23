@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"os/exec"
 	"path/filepath"
+	goruntime "runtime"
 
 	"github.com/ducminhgd/plan-craft/config"
 	"github.com/ducminhgd/plan-craft/internal"
@@ -92,7 +94,8 @@ func (m *MenuService) BuildApplicationMenu(ctx context.Context) *menu.Menu {
 	// Help menu
 	helpMenu := appMenu.AddSubmenu("Help")
 	helpMenu.AddText("Guides", nil, func(_ *menu.CallbackData) {
-		m.OpenGuides()
+		internal.Logger.Info("Guides menu clicked")
+		_ = m.OpenGuides()
 	})
 	helpMenu.AddSeparator()
 	helpMenu.AddText("About", nil, func(_ *menu.CallbackData) {
@@ -115,12 +118,43 @@ func (m *MenuService) ShowAboutDialog(ctx context.Context) {
 // OpenGuides opens the guides page in the default browser
 func (m *MenuService) OpenGuides() error {
 	if m.ctx == nil {
+		internal.Logger.Error("cannot open guides: context is nil")
 		return nil
 	}
-	// TODO: Replace with actual guides URL when available
 	guidesURL := "https://github.com/ducminhgd/plan-craft/wiki"
-	runtime.BrowserOpenURL(m.ctx, guidesURL)
+	internal.Logger.Info("Opening guides URL", "url", guidesURL)
+
+	// Try to open the URL in the default browser
+	err := m.openURL(guidesURL)
+	if err != nil {
+		internal.Logger.Error("failed to open browser", "error", err)
+		// Show dialog with URL for manual copy
+		runtime.MessageDialog(m.ctx, runtime.MessageDialogOptions{
+			Type:    runtime.InfoDialog,
+			Title:   "Browser Not Available",
+			Message: "Could not open the browser automatically.\n\nPlease visit the following URL manually:\n\n" + guidesURL,
+		})
+		// Also copy to clipboard for convenience
+		runtime.ClipboardSetText(m.ctx, guidesURL)
+	}
 	return nil
+}
+
+// openURL attempts to open a URL in the default browser
+func (m *MenuService) openURL(url string) error {
+	var cmd *exec.Cmd
+
+	switch goruntime.GOOS {
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default: // linux and others
+		cmd = exec.Command("xdg-open", url)
+	}
+
+	// Run and wait for completion to capture any errors
+	return cmd.Run()
 }
 
 // handleExit handles the exit action with unsaved changes confirmation
